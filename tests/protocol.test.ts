@@ -49,6 +49,23 @@ test("compressible files use gzip and recover exactly", async () => {
   assert.equal(await verifyFile(recovered), true);
 });
 
+test("gzip unpack works without DecompressionStream", async () => {
+  const source = new TextEncoder().encode("decimen optical transfer\n".repeat(4_000));
+  const packed = await packFile("notes.txt", "text/plain", source);
+  assert.equal(packed.compression, "gzip");
+
+  const Decomp = globalThis.DecompressionStream;
+  // @ts-expect-error -- hide the native stream so unpack takes the fflate path
+  delete globalThis.DecompressionStream;
+  try {
+    const recovered = await unpackFile(packed.container);
+    assert.deepEqual(recovered.bytes, source);
+    assert.equal(await verifyFile(recovered), true);
+  } finally {
+    globalThis.DecompressionStream = Decomp;
+  }
+});
+
 test("gzip output length is bounded by the declared original size", async () => {
   const source = new TextEncoder().encode("bounded output\n".repeat(1_000));
   const packed = await packFile("bounded.txt", "text/plain", source);

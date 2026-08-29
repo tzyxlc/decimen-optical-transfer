@@ -4,8 +4,8 @@
 // 1 = white), filter type 0 on every scanline, one zlib stream per image.
 // That is exactly what a rasterized QR frame needs — its pixels are pure
 // black/white u32s straight out of qr-raster.ts — and nothing more. The
-// compression rides the same CompressionStream the container layer already
-// uses (protocol.ts), so this adds no dependency and runs in Node for tests.
+// compression rides the same gzip/zlib helper as the container layer
+// (compression.ts): CompressionStream when present, fflate on older Safari.
 
 export const PNG_SIGNATURE = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
@@ -120,13 +120,11 @@ export function packBilevelScanlines(
   return out;
 }
 
-/** Deflate to a zlib stream — what IDAT and fdAT carry. Same CompressionStream
- *  machinery as the container layer's gzip (protocol.ts). */
+/** Deflate to a zlib stream — what IDAT and fdAT carry. Same helper as the
+ *  container layer's gzip (compression.ts). */
 export async function deflate(bytes: Uint8Array): Promise<Uint8Array> {
-  const compressed = new Blob([bytes as BlobPart])
-    .stream()
-    .pipeThrough(new CompressionStream("deflate"));
-  return new Uint8Array(await new Response(compressed).arrayBuffer());
+  const { deflateZlib } = await import("./compression");
+  return deflateZlib(bytes);
 }
 
 export function concatBytes(parts: readonly Uint8Array[]): Uint8Array {

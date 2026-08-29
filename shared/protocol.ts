@@ -152,45 +152,22 @@ async function digest(bytes: Uint8Array): Promise<Uint8Array> {
 }
 
 async function gzipAsync(bytes: Uint8Array): Promise<Uint8Array> {
-  const compressed = new Blob([bytes as BlobPart])
-    .stream()
-    .pipeThrough(new CompressionStream("gzip"));
-  return new Uint8Array(await new Response(compressed).arrayBuffer());
+  const { gzipBytes } = await import("./compression");
+  return gzipBytes(bytes);
 }
 
 /**
  * Inflate with a hard output ceiling.
  *
  * The gzip trailer's declared size is attacker-controlled — it arrives over the
- * optical channel like everything else — so it is a hint, never a bound. This
- * counts bytes as they come off the stream and aborts the moment they exceed
- * `maxBytes`, which the caller has already clamped to MAX_FILE_BYTES. Without
- * this an 80 KB stream could claim to be small and inflate to gigabytes.
+ * optical channel like everything else — so it is a hint, never a bound. The
+ * inflater counts bytes as they come off the stream and aborts the moment they
+ * exceed `maxBytes`, which the caller has already clamped to MAX_FILE_BYTES.
+ * Without this an 80 KB stream could claim to be small and inflate to gigabytes.
  */
 async function gunzipAsync(bytes: Uint8Array, maxBytes: number): Promise<Uint8Array> {
-  const inflated = new Blob([bytes as BlobPart])
-    .stream()
-    .pipeThrough(new DecompressionStream("gzip"));
-  const reader = inflated.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.length;
-    if (total > maxBytes) {
-      await reader.cancel();
-      throw new OpticalError("inflateOverflow");
-    }
-    chunks.push(value);
-  }
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    out.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return out;
+  const { gunzipBytes } = await import("./compression");
+  return gunzipBytes(bytes, maxBytes);
 }
 
 /**

@@ -42,6 +42,11 @@ contributed in commits 5e3fc81, 728526e, ca0a349, 3ebaa47, 50189b6, and
 
 -------------------------------------------------------------------------------
 
+fflate (https://github.com/101arrowz/fflate) is used as a gzip/zlib fallback
+when Compression Streams are missing (Safari < 16.4). MIT License.
+
+-------------------------------------------------------------------------------
+
 Vendored decimen-codec build (vendor/decimen-codec)
 
 vendor/decimen-codec contains the compiled decimen-codec decoder, licensed

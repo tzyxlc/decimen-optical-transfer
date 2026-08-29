@@ -14,6 +14,7 @@ npm test                  # golden wire-format vectors and unit tests (node --te
 npm run build             # typecheck (app + node configs), hosted site → dist/
 npm run build:standalone  # both self-contained pages → dist-standalone/
 npm run build:all         # everything
+npm run serve:go          # build, then serve the embedded site with Go (HTTPS :8443)
 npm run icons             # regenerate public/ icons from the logo (needs librsvg)
 ```
 

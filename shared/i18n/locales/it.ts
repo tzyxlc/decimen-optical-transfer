@@ -41,6 +41,9 @@ export const messages: Messages = {
       "Punta la fotocamera verso lo schermo del mittente per ricevere il file.",
     cardReceiveAction: "Ricevi",
     shareSite: "Condividi Decimen",
+    certDownload: "Scarica il certificato HTTPS",
+    certHint:
+      "L’iPhone lo richiede per la fotocamera. Installa il profilo, poi attiva la fiducia completa in Impostazioni → Generali → Info → Impostazioni di fiducia dei certificati.",
     supportTitle: "Gratuito, open source, senza pubblicità",
     supportBodyHtml:
       'Se Decimen ti ha semplificato la giornata, puoi <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">offrirmi un caffè</a>.',
@@ -190,6 +193,8 @@ export const messages: Messages = {
     errCameraGone:
       "quella fotocamera non è più disponibile: riporta fotocamera su auto e tocca Avvia fotocamera.",
     errCamera: (message) => `fotocamera: ${message}`,
+    errDecoder: "il decodificatore QR non è partito — ricarica la pagina.",
+    errBlankCapture: "i fotogrammi della fotocamera sono vuoti — ricarica la pagina.",
     errRestartFailed:
       "fotocamera: impossibile riavviarla dopo il cambio — tocca Avvia fotocamera.",
     errLiveChangeRefused:

@@ -10,6 +10,7 @@
 
 export interface PoolWorker {
   onmessage: ((event: MessageEvent) => void) | null;
+  onerror?: ((event: ErrorEvent) => void) | null;
   postMessage(message: unknown, transfer: Transferable[]): void;
   terminate(): void;
 }
@@ -43,6 +44,10 @@ export interface SymbolInfo {
 
 interface DecodeMessage {
   id: number;
+  /** Warm-up ping: false means WASM/init failed and this worker will never decode. */
+  ready?: boolean;
+  /** Failure detail from WASM init, when `ready` is false. */
+  error?: string;
   /** Every QR found in the frame. The grid sender shows several codes at
    *  once; each one is an independent fountain frame. Empty means a miss. */
   symbols: { bytes: Uint8Array; box?: SymbolBox; quad?: SymbolQuad; modules?: number; tracked?: boolean }[];
@@ -57,12 +62,16 @@ interface DecodeMessage {
 export class DecodeWorkerPool {
   private readonly workers: PoolWorker[] = [];
   private readonly busy: boolean[] = [];
+  private warmed: boolean | null = null;
+  private readonly readyWaiters: Array<(ok: boolean) => void> = [];
 
   constructor(
     private readonly create: () => PoolWorker,
     private readonly onDecoded: (bytes: Uint8Array, box?: SymbolBox, info?: SymbolInfo) => void,
     private readonly onSighted?: (box: SymbolBox) => void,
     private readonly onTrackedAttempt?: () => void,
+    private readonly onWorkerError?: (message: string) => void,
+    private readonly onReply?: () => void,
   ) {}
 
   get size(): number {
@@ -73,6 +82,37 @@ export class DecodeWorkerPool {
     return this.busy.filter(Boolean).length;
   }
 
+  /** True after the first successful warm-up ping. Capture must not submit
+   *  before this — a hung WASM init would occupy the only slot forever. */
+  get isReady(): boolean {
+    return this.warmed === true;
+  }
+
+  /** Wait until a worker reports WASM ready, or `timeoutMs` elapses. */
+  whenReady(timeoutMs = 15_000): Promise<boolean> {
+    if (this.warmed !== null) return Promise.resolve(this.warmed);
+    if (this.workers.length === 0) return Promise.resolve(false);
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        if (this.warmed !== null) return;
+        this.onWorkerError?.("decoder init timed out");
+        this.finishWarm(false);
+        resolve(false);
+      }, timeoutMs);
+      this.readyWaiters.push((ok) => {
+        clearTimeout(timer);
+        resolve(ok);
+      });
+    });
+  }
+
+  private finishWarm(ok: boolean): void {
+    if (this.warmed !== null) return;
+    this.warmed = ok;
+    const waiters = this.readyWaiters.splice(0);
+    for (const waiter of waiters) waiter(ok);
+  }
+
   /** Grow or shrink in place. Terminating a busy worker just drops the frame it
    *  held, which the fountain absorbs like any other miss. */
   resize(count: number): void {
@@ -80,17 +120,35 @@ export class DecodeWorkerPool {
       this.workers.pop()!.terminate();
       this.busy.pop();
     }
+    if (this.workers.length === 0) {
+      this.warmed = null;
+      const waiters = this.readyWaiters.splice(0);
+      for (const waiter of waiters) waiter(false);
+    }
     while (this.workers.length < count) {
       const slot = this.workers.length;
       const worker = this.create();
       worker.onmessage = (event: MessageEvent) => {
-        const { id, symbols, sightings, trackedAttempted } = event.data as DecodeMessage;
-        if (id === -1) return; // warm-up ping, no frame attached
+        const { id, symbols, sightings, trackedAttempted, ready, error } = event.data as DecodeMessage;
+        if (id === -1) {
+          if (ready === false) {
+            this.onWorkerError?.(error || "decoder init failed");
+            this.finishWarm(false);
+          } else {
+            this.finishWarm(true);
+          }
+          return;
+        }
         this.busy[slot] = false;
+        this.onReply?.();
         if (trackedAttempted) this.onTrackedAttempt?.();
         for (const s of symbols)
           this.onDecoded(s.bytes, s.box, { quad: s.quad, modules: s.modules, tracked: s.tracked });
         if (this.onSighted) for (const box of sightings ?? []) this.onSighted(box);
+      };
+      worker.onerror = (event) => {
+        this.busy[slot] = false;
+        this.onWorkerError?.(event.message || "decode worker crashed");
       };
       this.workers.push(worker);
       this.busy.push(false);

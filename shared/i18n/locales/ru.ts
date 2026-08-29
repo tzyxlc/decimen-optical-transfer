@@ -40,6 +40,9 @@ export const messages: Messages = {
     cardReceiveBody: "Наведите камеру на экран отправителя, чтобы получить файл.",
     cardReceiveAction: "Получить",
     shareSite: "Поделиться Decimen",
+    certDownload: "Скачать HTTPS-сертификат",
+    certHint:
+      "iPhone нужен этот файл для камеры. Установите профиль, затем включите полное доверие в Настройки → Основные → Об этом устройстве → Доверие сертификатам.",
     supportTitle: "Бесплатно, открытый код, без рекламы",
     supportBodyHtml:
       'Если Decimen вам пригодился, можете <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">угостить меня кофе</a>.',
@@ -190,6 +193,8 @@ export const messages: Messages = {
     errCameraGone:
       "эта камера больше недоступна — верните настройку «камера» на «авто» и нажмите «Включить камеру».",
     errCamera: (message) => `камера: ${message}`,
+    errDecoder: "декодер QR не запустился — обновите страницу.",
+    errBlankCapture: "кадры камеры пустые — обновите страницу.",
     errRestartFailed:
       "камера: не перезапустилась после переключения — нажмите «Включить камеру».",
     errLiveChangeRefused: "эта камера не приняла изменение на лету — перезапустите, чтобы применить",

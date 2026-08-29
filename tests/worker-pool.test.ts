@@ -235,6 +235,97 @@ test("quad, modules, and tracked flag ride along to the decode callback", () => 
   assert.deepEqual(infos, [{ quad, modules: 177, tracked: true }]);
 });
 
+test("a failed warm-up ping reports through onWorkerError", () => {
+  const errors: string[] = [];
+  const created: FakeWorker[] = [];
+  const pool = new DecodeWorkerPool(
+    () => {
+      const worker = new FakeWorker(0);
+      created.push(worker);
+      return worker;
+    },
+    () => undefined,
+    undefined,
+    undefined,
+    (message) => errors.push(message),
+  );
+  pool.resize(1);
+  created[0]!.onmessage?.({ data: { id: -1, ready: false, error: "wasm compile" } } as MessageEvent);
+  assert.deepEqual(errors, ["wasm compile"]);
+  created[0]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(errors.length, 1);
+});
+
+test("whenReady resolves after a successful warm-up ping", async () => {
+  const { pool, created } = harness();
+  pool.resize(1);
+  const pending = pool.whenReady(1000);
+  created[0]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(await pending, true);
+  assert.equal(pool.isReady, true);
+  assert.equal(await pool.whenReady(20), true, "already warm — no second wait");
+});
+
+test("whenReady fails on a failed warm-up ping", async () => {
+  const errors: string[] = [];
+  const created: FakeWorker[] = [];
+  const pool = new DecodeWorkerPool(
+    () => {
+      const worker = new FakeWorker(0);
+      created.push(worker);
+      return worker;
+    },
+    () => undefined,
+    undefined,
+    undefined,
+    (message) => errors.push(message),
+  );
+  pool.resize(1);
+  const pending = pool.whenReady(1000);
+  created[0]!.onmessage?.({ data: { id: -1, ready: false } } as MessageEvent);
+  assert.equal(await pending, false);
+  assert.equal(pool.isReady, false);
+  assert.deepEqual(errors, ["decoder init failed"]);
+});
+
+test("whenReady times out when the decoder never pings", async () => {
+  const errors: string[] = [];
+  const pool = new DecodeWorkerPool(
+    () => new FakeWorker(0),
+    () => undefined,
+    undefined,
+    undefined,
+    (message) => errors.push(message),
+  );
+  pool.resize(1);
+  assert.equal(await pool.whenReady(20), false);
+  assert.ok(errors.some((e) => /timed out/.test(e)));
+  assert.equal(pool.isReady, false);
+});
+
+test("onReply fires for every finished frame, including misses", () => {
+  let replies = 0;
+  const created: FakeWorker[] = [];
+  const pool = new DecodeWorkerPool(
+    () => {
+      const worker = new FakeWorker(0);
+      created.push(worker);
+      return worker;
+    },
+    () => undefined,
+    undefined,
+    undefined,
+    undefined,
+    () => replies++,
+  );
+  pool.resize(1);
+  pool.submit(frame(1), []);
+  created[0]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(replies, 0, "warm-up is not a frame reply");
+  created[0]!.reply(null);
+  assert.equal(replies, 1);
+});
+
 test("an empty pool accepts nothing", () => {
   const { pool } = harness();
   assert.equal(pool.submit(frame(1), []), false);

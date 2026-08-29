@@ -1,3 +1,29 @@
+/** Open a modal. iOS 15.0–15.3 has no `showModal`; the `open` attribute
+ *  still reveals the box. */
+export function openDialog(dialog: HTMLDialogElement): void {
+  if (typeof dialog.showModal === "function") {
+    try {
+      dialog.showModal();
+      return;
+    } catch {
+      // Already open, or the engine rejected the modal — fall through.
+    }
+  }
+  dialog.setAttribute("open", "");
+}
+
+/** Close even when `dialog.close()` is missing or a no-op (iOS 15). */
+export function closeDialog(dialog: HTMLDialogElement): void {
+  if (typeof dialog.close === "function") {
+    try {
+      dialog.close();
+    } catch {
+      // ignore
+    }
+  }
+  dialog.removeAttribute("open");
+}
+
 /** Close a modal <dialog> when a click lands on its ::backdrop.
  *
  *  Comparing event.target to the dialog — the common recipe — is wrong: the
@@ -14,6 +40,6 @@ export function closeOnBackdropClick(dialog: HTMLDialogElement): void {
       event.clientX <= rect.right &&
       event.clientY >= rect.top &&
       event.clientY <= rect.bottom;
-    if (!inside) dialog.close();
+    if (!inside) closeDialog(dialog);
   });
 }

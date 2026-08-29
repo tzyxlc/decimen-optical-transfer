@@ -40,6 +40,9 @@ export const messages: Messages = {
     cardReceiveBody: "फ़ाइल प्राप्त करने के लिए अपना कैमरा भेजने वाली स्क्रीन की ओर करें।",
     cardReceiveAction: "प्राप्त करें",
     shareSite: "Decimen शेयर करें",
+    certDownload: "HTTPS प्रमाणपत्र डाउनलोड करें",
+    certHint:
+      "कैमरा के लिए iPhone को यह चाहिए। प्रोफ़ाइल इंस्टॉल करें, फिर सेटिंग्स → सामान्य → परिचय → प्रमाणपत्र विश्वास सेटिंग्स में पूरा भरोसा चालू करें।",
     supportTitle: "मुफ़्त, ओपन सोर्स, बिना विज्ञापन",
     supportBodyHtml:
       'अगर Decimen ने आपका काम आसान किया हो, तो आप <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">मुझे एक कॉफ़ी पिला सकते हैं</a>।',
@@ -184,6 +187,8 @@ export const messages: Messages = {
     errCameraGone:
       "वह कैमरा अब उपलब्ध नहीं है — कैमरा वापस ऑटो पर सेट करें और “कैमरा शुरू करें” दबाएँ।",
     errCamera: (message) => `कैमरा: ${message}`,
+    errDecoder: "QR डीकोडर शुरू नहीं हुआ — पेज रीलोड करें।",
+    errBlankCapture: "कैमरा फ़्रेम खाली हैं — पेज रीलोड करें।",
     errRestartFailed: "कैमरा: स्विच के बाद दोबारा शुरू नहीं हो सका — “कैमरा शुरू करें” दबाएँ।",
     errLiveChangeRefused: "इस कैमरे ने लाइव बदलाव स्वीकार नहीं किया — लागू करने के लिए दोबारा शुरू करें",
     cameraRefusedKeptPrevious: "वह कैमरा शुरू नहीं हुआ — पिछला ही चालू रखा गया है",

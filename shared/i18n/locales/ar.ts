@@ -40,6 +40,9 @@ export const messages: Messages = {
     cardReceiveBody: "وجِّه الكاميرا نحو شاشة المرسِل لاستقبال الملف.",
     cardReceiveAction: "استقبال",
     shareSite: "مشاركة Decimen",
+    certDownload: "تنزيل شهادة HTTPS",
+    certHint:
+      "يحتاجها الآيفون للكاميرا. ثبّت الملف الشخصي ثم فعّل الثقة الكاملة من الإعدادات → عام → حول → إعدادات ثقة الشهادات.",
     supportTitle: "مجاني ومفتوح المصدر وبلا إعلانات",
     supportBodyHtml:
       'إذا جعل Decimen يومك أسهل، يمكنك أن <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">تشتري لي فنجان قهوة</a>.',
@@ -183,6 +186,8 @@ export const messages: Messages = {
     errCameraGone:
       "هذه الكاميرا لم تعد متاحة — أعد ضبط الكاميرا إلى «تلقائي» ثم انقر «تشغيل الكاميرا».",
     errCamera: (message) => `الكاميرا: ${message}`,
+    errDecoder: "تعذّر تشغيل فاكّ QR — أعد تحميل الصفحة.",
+    errBlankCapture: "إطارات الكاميرا فارغة — أعد تحميل الصفحة.",
     errRestartFailed: "الكاميرا: تعذّرت إعادة التشغيل بعد التبديل — انقر «تشغيل الكاميرا».",
     errLiveChangeRefused: "رفضت هذه الكاميرا تغييرًا أثناء التشغيل — أعد التشغيل لتطبيقه",
     cameraRefusedKeptPrevious: "رفضت تلك الكاميرا التشغيل — أُبقيَ على الكاميرا السابقة",

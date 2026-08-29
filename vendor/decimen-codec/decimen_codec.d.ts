@@ -94,6 +94,7 @@ export interface DecimenModule {
 
 export default function DecimenCodec(options?: {
   locateFile?: (path: string, prefix: string) => string;
+  wasmBinary?: ArrayBuffer;
   instantiateWasm?: (
     imports: WebAssembly.Imports,
     done: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void,

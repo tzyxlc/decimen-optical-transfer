@@ -1,7 +1,13 @@
 node_modules/
-dist/
+# Built site; keep the placeholder so `go:embed all:dist` compiles before npm build.
+dist/**
+!dist/.gitkeep
 *.local
 .DS_Store
 dist-standalone/
 artifacts/
 scratch/
+/decimen
+/decimen.exe
+/decimen-server
+/decimen-server.exe

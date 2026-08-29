@@ -43,6 +43,9 @@ export const messages: Messages = {
       "Pointez votre caméra vers l’écran de l’expéditeur pour recevoir le fichier.",
     cardReceiveAction: "Recevoir",
     shareSite: "Partager Decimen",
+    certDownload: "Télécharger le certificat HTTPS",
+    certHint:
+      "L’iPhone en a besoin pour la caméra. Installez le profil, puis activez la confiance complète dans Réglages → Général → Informations → Réglages de confiance des certificats.",
     supportTitle: "Gratuit, open source, sans publicité",
     supportBodyHtml:
       'Si Decimen vous a facilité la vie, vous pouvez <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">m’offrir un café</a>.',
@@ -196,6 +199,8 @@ export const messages: Messages = {
       "cette caméra n’est plus disponible — remettez caméra sur auto et appuyez sur " +
       "Démarrer la caméra.",
     errCamera: (message) => `caméra : ${message}`,
+    errDecoder: "le décodeur QR n’a pas démarré — rechargez la page.",
+    errBlankCapture: "les images de la caméra sont vides — rechargez la page.",
     errRestartFailed:
       "caméra : redémarrage impossible après le changement — appuyez sur Démarrer la caméra.",
     errLiveChangeRefused:

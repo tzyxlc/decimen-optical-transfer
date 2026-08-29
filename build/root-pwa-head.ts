@@ -29,6 +29,16 @@ export function rootPwaHead(): Plugin {
     `
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
+    // iOS 14: a stale precache of the previous ES2022/module-worker build
+    // looks exactly like "camera works, codes do nothing". Drop the SW
+    // entirely on that OS — the phone is the receiver, not an offline kiosk.
+    const ios14 = /iP(hone|ad|od)/.test(navigator.userAgent) && /OS 14_/.test(navigator.userAgent);
+    if (ios14) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        for (const r of regs) r.unregister();
+      });
+      return;
+    }
     // Already controlled means this is an update rather than a first visit,
     // and only then is a reload warranted when the new worker takes over.
     const wasControlled = !!navigator.serviceWorker.controller;

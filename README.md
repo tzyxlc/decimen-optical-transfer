@@ -88,6 +88,16 @@ npm test                  # golden wire-format vectors and unit tests
 npm run build             # the hosted site → dist/
 npm run build:standalone  # both self-contained pages → dist-standalone/
 npm run build:all         # everything
+npm run serve:go          # build, then serve the embedded site with Go (HTTPS :8443)
+```
+
+After `npm run build`, a single Go binary can embed `dist/` and serve it (HTTPS by
+default so a phone on the LAN still gets a camera):
+
+```bash
+go run .                  # https://localhost:8443/  (self-signed; accept once)
+go build -o decimen-server.exe .
+./decimen-server.exe -tls=false -addr :8080   # plaintext HTTP, localhost camera only
 ```
 
 Open `https://localhost:5173/send/` on the sending device and the printed

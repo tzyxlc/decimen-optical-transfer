@@ -3,9 +3,11 @@
 The compiled decimen-codec decoder: a custom WebAssembly build of a QR-only,
 reader-only zxing-cpp with a tracked decode path, exposed through a small
 embind wrapper. Source is maintained at
-<https://github.com/bashalarmistalt/decimen-codec>. The vendored artifacts
-name their own build: the banner on the first line of `decimen_codec.js`,
-and the module's `version()`/`build()` exports at runtime.
+<https://github.com/bashalarmistalt/decimen-codec>. This copy is a **scalar**
+build (no `-msimd128`) targeting Safari 14.1+ so iOS 14/15 can instantiate
+it — WASM SIMD is Safari 16.4+ only, and opcode 0xFD is a parse error before
+that. The artifacts name their own build: the banner on the first line of
+`decimen_codec.js`, and the module's `version()`/`build()` exports at runtime.
 
 decimen-codec is licensed under AGPL-3.0-or-later, the same license as the
 rest of this project — see the repository root [LICENSE](../../LICENSE). It

@@ -41,6 +41,9 @@ export const messages: Messages = {
     cardReceiveBody: "Aponte a câmera para a tela do remetente para receber o arquivo.",
     cardReceiveAction: "Receber",
     shareSite: "Compartilhar o Decimen",
+    certDownload: "Baixar o certificado HTTPS",
+    certHint:
+      "O iPhone precisa disso para a câmera. Instale o perfil e ative a confiança total em Ajustes → Geral → Sobre → Ajustes de confiança do certificado.",
     supportTitle: "Gratuito, código aberto, sem anúncios",
     supportBodyHtml:
       'Se o Decimen facilitou o seu dia, você pode <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">me pagar um café</a>.',
@@ -184,6 +187,8 @@ export const messages: Messages = {
     errCameraGone:
       "essa câmera não está mais disponível — volte a câmera para auto e toque em Iniciar câmera.",
     errCamera: (message) => `câmera: ${message}`,
+    errDecoder: "o decodificador QR não iniciou — recarregue a página.",
+    errBlankCapture: "os quadros da câmera estão em branco — recarregue a página.",
     errRestartFailed: "câmera: não foi possível reiniciar após a troca — toque em Iniciar câmera.",
     errLiveChangeRefused: "esta câmera recusou uma alteração ao vivo — reinicie para aplicar",
     cameraRefusedKeptPrevious: "essa câmera recusou iniciar — a anterior foi mantida",

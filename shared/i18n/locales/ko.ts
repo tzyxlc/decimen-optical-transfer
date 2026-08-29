@@ -40,6 +40,9 @@ export const messages: Messages = {
     cardReceiveBody: "보내는 쪽 화면에 카메라를 비추면 파일을 받습니다.",
     cardReceiveAction: "받기",
     shareSite: "Decimen 공유",
+    certDownload: "HTTPS 인증서 다운로드",
+    certHint:
+      "아이폰에서 카메라를 쓰려면 필요합니다. 구성 프로필을 설치한 뒤 설정 → 일반 → 정보 → 인증서 신뢰 설정에서 완전히 신뢰하세요.",
     supportTitle: "무료, 오픈 소스, 광고 없음",
     supportBodyHtml:
       'Decimen이 도움이 되었다면 <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">커피 한 잔</a>으로 응원해 주세요.',
@@ -185,6 +188,8 @@ export const messages: Messages = {
     errCameraGone:
       "해당 카메라를 더 이상 사용할 수 없습니다 — 카메라를 자동으로 되돌리고 카메라 시작을 누르세요.",
     errCamera: (message) => `카메라: ${message}`,
+    errDecoder: "QR 디코더를 시작하지 못했습니다. 페이지를 새로고침하세요.",
+    errBlankCapture: "카메라 프레임이 비어 있습니다. 페이지를 새로고침하세요.",
     errRestartFailed: "카메라: 전환 후 다시 시작하지 못했습니다 — 카메라 시작을 누르세요.",
     errLiveChangeRefused: "이 카메라가 실시간 변경을 거부했습니다 — 적용하려면 다시 시작하세요",
     cameraRefusedKeptPrevious: "해당 카메라가 시작을 거부했습니다 — 이전 카메라를 유지합니다",

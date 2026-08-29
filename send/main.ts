@@ -55,8 +55,6 @@ import { statusLine } from "../shared/status-line";
 import { requestScreenWakeLock } from "../shared/wake-lock";
 import { wireShareDialog } from "../shared/share-dialog";
 
-await initI18n();
-
 const LOOKAHEAD = 3;
 
 // `npm run demo` (vite --mode demo). Locks the sender to the two bundled
@@ -414,6 +412,9 @@ async function selectSnippet(): Promise<void> {
 }
 
 async function main() {
+  // Await here, not at module top — Safari 14 / iOS 14 rejects top-level await
+  // and the whole sender script would fail to parse.
+  await initI18n();
   // Both bounds come from MAX_SNIPPET_BYTES so they can't drift apart. maxLength
   // counts UTF-16 units and the real check counts UTF-8 bytes, which are never
   // fewer — so this is a loose guard and packSnippet() remains authoritative.

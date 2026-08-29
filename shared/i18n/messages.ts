@@ -62,6 +62,8 @@ export interface Messages {
     cardReceiveBody: string;
     cardReceiveAction: string; // "Receive"
     shareSite: string; // "Share Decimen"
+    certDownload: string; // LAN Go server: download the self-signed cert
+    certHint: string;
     supportTitle: string; // "Free, open source, no ads"
     supportBodyHtml: string; // carries an <a …>coffee link</a>
     shareDialogTitle: string; // "Share this app"
@@ -205,6 +207,8 @@ export interface Messages {
     errPermissionDenied: string;
     errCameraGone: string;
     errCamera: (message: string) => string; // "camera: …"
+    errDecoder: string; // WASM/worker failed to start
+    errBlankCapture: string; // canvas frames are black
     errRestartFailed: string;
     errLiveChangeRefused: string;
     cameraRefusedKeptPrevious: string;

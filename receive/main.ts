@@ -30,6 +30,7 @@ import { createDecodeWorker } from "./worker-factory";
 import { NoSignalHintTimer } from "../shared/no-signal";
 import {
   DecodeWorkerPool,
+  type PoolWorker,
   type SymbolBox,
   type SymbolInfo,
   type SymbolQuad,
@@ -47,11 +48,9 @@ import {
 import { NO_SIGNAL_HINT_FRAME_BYTES, NO_SIGNAL_HINT_TX_FPS } from "../shared/send-settings";
 import { statusLine } from "../shared/status-line";
 import { requestScreenWakeLock } from "../shared/wake-lock";
-import { applyAdvancedConstraint, probeCameraCapabilities } from "../shared/platform";
-import { closeOnBackdropClick } from "../shared/dialog";
+import { applyAdvancedConstraint, isIOS, probeCameraCapabilities } from "../shared/platform";
+import { closeDialog, closeOnBackdropClick, openDialog } from "../shared/dialog";
 import { supportLink } from "./support";
-
-await initI18n();
 
 const startBtn = document.getElementById("start") as HTMLButtonElement;
 const video = document.getElementById("video") as HTMLVideoElement;
@@ -133,8 +132,11 @@ let settingsWired = false;
 let statsTimer: ReturnType<typeof setInterval> | undefined;
 
 const noSignal = new NoSignalHintTimer(NO_SIGNAL_FIRST_MS, NO_SIGNAL_DISMISSED_MS);
+let reportDecoderFailure: (detail?: string) => void = () => undefined;
+let createWorker: () => PoolWorker = createDecodeWorker;
+const ios14 = isIOS && /OS 14_/.test(navigator.userAgent);
 const pool = new DecodeWorkerPool(
-  createDecodeWorker,
+  () => createWorker(),
   (bytes, box, info) => onDecoded(bytes, box, info),
   // A sighting is a detected-but-undecoded code: no bytes, but a position.
   // Heavily gated in noteRegion (refresh-only on matches, size-checked on
@@ -142,9 +144,12 @@ const pool = new DecodeWorkerPool(
   // the crop path go decode what the full frame could not.
   (box) => noteRegion(box, performance.now(), false),
   () => trackedAttempts++,
+  (detail) => reportDecoderFailure(detail),
+  () => tryTimes.push(performance.now()),
 );
 const captureTimes: number[] = [];
 const decodeTimes: number[] = [];
+const tryTimes: number[] = [];
 
 // Run-level totals for the diagnostics report (npm run diagnostics). The
 // captureTimes/decodeTimes windows above are pruned for the live fps metrics
@@ -210,7 +215,7 @@ const FULL_SCAN_DEGRADED_MS = 250;
 // hottest loop (fullScans regularly passed 100 before the first timeline
 // sample). Ten per second keeps acquisition feeling instant — ≤100 ms added
 // to first lock — and cuts the aiming burn ~85%.
-const ACQUISITION_SCAN_MS = 100;
+const ACQUISITION_SCAN_MS = ios14 ? 200 : 100;
 // The high-water mark ages out: a sender restarted with a smaller layout
 // would otherwise keep this receiver rescanning for codes that no longer
 // exist until the transfer ends.
@@ -374,7 +379,10 @@ function drawOverlay(now: number) {
   overlayCtx.globalAlpha = 1;
   overlayCtx.shadowBlur = 0;
 }
-startBtn.onclick = () => void start();
+const i18nReady = initI18n();
+startBtn.onclick = () => {
+  void i18nReady.then(start);
+};
 
 // The header nav markup is shared verbatim between both tool pages; each page
 // marks its own link. Optional because the standalone build swaps the nav for
@@ -394,31 +402,56 @@ if (navigator.hardwareConcurrency) {
 // CPU), and controlled runs showed the pool as the safety margin, not the
 // risk — a 60 fps stream now decodes at capture rate when the pool is ahead
 // of it. An explicit selection (change event) sticks for the session.
-cfgWorkers.value = String(
-  Math.max(...Array.from(cfgWorkers.options, (option) => Number(option.value))),
+// iPhone 11 / iOS 14: six WASM instances plus 1280-wide frames OOMs the
+// tab, which looks exactly like "camera works, codes do nothing". Cap the
+// default; the user can still raise it from the settings list.
+const maxWorkerOption = Math.max(
+  ...Array.from(cfgWorkers.options, (option) => Number(option.value)),
 );
+cfgWorkers.value = String(isIOS ? Math.min(maxWorkerOption, ios14 ? 1 : 2) : maxWorkerOption);
+if (ios14) {
+  cfgWidth.value = "960";
+  cfgCapFps.value = "30";
+}
 
 const { setStatus, showError } = statusLine(stats);
+let decoderFailShown = false;
+let lastDecoderError = "";
+reportDecoderFailure = (detail?: string) => {
+  if (detail) lastDecoderError = detail;
+  if (done || decoderFailShown) return;
+  decoderFailShown = true;
+  showError(detail ? `${msg.receive.errDecoder} (${detail})` : msg.receive.errDecoder);
+};
 
 // The toast asks one question; the answers live in the dialog. The tip list is
 // built here rather than in the HTML so its numbers stay tied to the shared
-// send-settings constants the sender's controls are rendered from.
-for (const line of [
-  msg.receive.tipDropFrameBytes(String(NO_SIGNAL_HINT_FRAME_BYTES)),
-  msg.receive.tipDropTxFps(String(NO_SIGNAL_HINT_TX_FPS)),
-  msg.receive.tipFillView,
-  msg.receive.tipBrightness,
-]) {
-  const item = document.createElement("li");
-  item.textContent = line;
-  noSignalTips.append(item);
-}
+// send-settings constants the sender's controls are rendered from. Waits for
+// i18n — and must not be top-level await, which Safari 14 / iOS 14 cannot parse.
+void i18nReady.then(() => {
+  for (const line of [
+    msg.receive.tipDropFrameBytes(String(NO_SIGNAL_HINT_FRAME_BYTES)),
+    msg.receive.tipDropTxFps(String(NO_SIGNAL_HINT_TX_FPS)),
+    msg.receive.tipFillView,
+    msg.receive.tipBrightness,
+  ]) {
+    const item = document.createElement("li");
+    item.textContent = line;
+    noSignalTips.append(item);
+  }
+  // Surface the https requirement before the user taps Start — a phone on
+  // plain LAN http has no getUserMedia at all, and a dead button looks like
+  // "camera broken".
+  if (!navigator.mediaDevices?.getUserMedia) {
+    showError(msg.receive.errSecureContext);
+  }
+});
 
 document.getElementById("no-signal-help")!.addEventListener("click", () => {
-  noSignalDialog.showModal();
+  openDialog(noSignalDialog);
 });
 document.getElementById("no-signal-dismiss")!.addEventListener("click", dismissNoSignal);
-document.getElementById("no-signal-close")!.addEventListener("click", () => noSignalDialog.close());
+document.getElementById("no-signal-close")!.addEventListener("click", () => closeDialog(noSignalDialog));
 // A tap on the backdrop closes too — geometry-tested, see shared/dialog.ts.
 closeOnBackdropClick(noSignalDialog);
 // close fires on the button, Esc, the backdrop, and the programmatic close
@@ -470,26 +503,70 @@ function cameraSelection(): MediaTrackConstraints {
 
 /** getUserMedia with the shared width/fps settings applied. Frame rate is
  *  demanded exactly first — iOS hands back 30 fps after accepting a polite
- *  request for 60 — and the ideal retry takes what the camera can give. */
+ *  request for 60 — and later attempts drop constraints Safari 14 rejects as
+ *  a set (width+height+fps together is a common OverconstrainedError on
+ *  iPhone 11 / iOS 14). Permission denials stop immediately so we do not
+ *  re-prompt. */
 async function acquireCamera(selection: MediaTrackConstraints): Promise<MediaStream> {
   const captureWidth = Number(cfgWidth.value);
   const captureFps = Number(cfgCapFps.value);
-  const base: MediaTrackConstraints = {
-    ...selection,
-    width: { ideal: captureWidth },
-    height: { ideal: Math.round((captureWidth * 3) / 4) },
-  };
-  try {
-    return await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { ...base, frameRate: { exact: captureFps } },
-    });
-  } catch {
-    return await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { ...base, frameRate: { ideal: captureFps } },
-    });
+  const height = Math.round((captureWidth * 3) / 4);
+  const attempts: MediaTrackConstraints[] = [
+    { ...selection, width: { ideal: captureWidth }, height: { ideal: height }, frameRate: { exact: captureFps } },
+    { ...selection, width: { ideal: captureWidth }, height: { ideal: height }, frameRate: { ideal: captureFps } },
+    { ...selection, width: { ideal: captureWidth }, frameRate: { ideal: captureFps } },
+    { ...selection, width: { ideal: captureWidth } },
+    { ...selection },
+  ];
+  if (!selection.deviceId) {
+    attempts.push({ facingMode: "environment" });
   }
+
+  let lastError: unknown;
+  for (const video of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia({ audio: false, video });
+    } catch (err) {
+      lastError = err;
+      if (err instanceof DOMException) {
+        if (err.name === "NotAllowedError" || err.name === "SecurityError") throw err;
+      }
+    }
+  }
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+  } catch (err) {
+    throw lastError ?? err;
+  }
+}
+
+/** iOS will not show a live camera in a <video> that can go fullscreen; the
+ *  attribute must be present before play(), and webkit-playsinline covers
+ *  older WebKit. Wait for metadata — iOS 14 otherwise paints a black box. */
+async function attachStream(next: MediaStream): Promise<void> {
+  video.muted = true;
+  video.defaultMuted = true;
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "");
+  video.srcObject = next;
+  const negotiated = next.getVideoTracks()[0]?.getSettings();
+  if (negotiated?.width && negotiated.height) {
+    video.width = negotiated.width;
+    video.height = negotiated.height;
+  }
+  if (video.readyState < HTMLMediaElement.HAVE_METADATA) {
+    await Promise.race([
+      new Promise<void>((resolve) => {
+        video.addEventListener("loadedmetadata", () => resolve(), { once: true });
+      }),
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, 2000);
+      }),
+    ]);
+  }
+  await video.play().catch(() => undefined);
+  syncPreviewAspect();
 }
 
 /**
@@ -550,15 +627,39 @@ async function start() {
   preview.style.display = "";
   metricsEl.style.display = "grid";
   if (diagnosticsEl) diagnosticsEl.style.display = "block";
-  video.srcObject = stream;
-  await video.play().catch(() => undefined);
-  syncPreviewAspect();
+  await attachStream(stream);
   const settings = stream.getVideoTracks()[0]?.getSettings();
   setStatus(
     msg.receive.cameraSearching(`${settings?.width}×${settings?.height}@${settings?.frameRate}`),
   );
 
+  if (ios14 || new URLSearchParams(window.location.search).get("decode") === "main") {
+    // Safari 14 often cannot instantiate WASM inside a Worker. Decode on
+    // this thread instead — one WASM instance, same codec.
+    try {
+      const { createMainDecodeWorker } = await import("./main-decode");
+      createWorker = createMainDecodeWorker;
+      cfgWorkers.value = "1";
+    } catch (err) {
+      offerRetry(
+        `${msg.receive.errDecoder} (${err instanceof Error ? err.message : String(err)})`,
+      );
+      return;
+    }
+  }
   pool.resize(Number(cfgWorkers.value));
+  const decoderOk = await pool.whenReady(ios14 ? 20_000 : 12_000);
+  if (!decoderOk) {
+    pool.resize(0);
+    for (const track of stream.getTracks()) track.stop();
+    stream = null;
+    video.srcObject = null;
+    offerRetry(
+      lastDecoderError ? `${msg.receive.errDecoder} (${lastDecoderError})` : msg.receive.errDecoder,
+    );
+    return;
+  }
+  decoderFailShown = false;
   reportCameraSettings();
   void applyCameraExtras();
   void populateCameraOptions();
@@ -656,9 +757,7 @@ async function switchCamera() {
     }
   }
   cfgCamera.disabled = false;
-  video.srcObject = stream;
-  await video.play().catch(() => undefined);
-  syncPreviewAspect();
+  await attachStream(stream);
   reportCameraSettings();
   void applyCameraExtras();
   await populateCameraOptions();
@@ -709,6 +808,11 @@ function scheduleFrame(gen: number) {
 }
 
 const grab = document.createElement("canvas");
+// iOS 14: a detached canvas drawImage(video) often yields a black frame
+// even while the visible <video> is live. Keep this copy in the document.
+grab.className = "grab-canvas";
+grab.setAttribute("aria-hidden", "true");
+document.body.append(grab);
 let frameId = 0;
 
 // GPU-side capture: createImageBitmap(video, crop) hands each worker a
@@ -751,17 +855,40 @@ function submitBitmap(
 // thing requiring main-thread pixel access. Duplicates now cost one cheap
 // tracked decode each, which the pool absorbs without noticing.
 
+let blankStreak = 0;
+
+function captureSize(): { vw: number; vh: number } {
+  const track = stream?.getVideoTracks()[0]?.getSettings();
+  const vw = video.videoWidth || track?.width || 0;
+  const vh = video.videoHeight || track?.height || 0;
+  return { vw, vh };
+}
+
+function frameLooksBlank(data: Uint8ClampedArray): boolean {
+  const step = Math.max(16, (data.length / 256) | 0) & ~3;
+  let sum = 0;
+  let n = 0;
+  for (let i = 0; i < data.length; i += step) {
+    sum += data[i]!;
+    n++;
+  }
+  if (!n) return true;
+  const avg = sum / n;
+  return avg < 4 || avg > 251;
+}
+
 function captureFrame() {
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
+  const { vw, vh } = captureSize();
   if (!vw || !vh) return;
-  const now = performance.now();
-  captureTimes.push(now);
-  totalCaptures++;
+  // Do not count preview ticks as captures: rAF can run at 50+ Hz while the
+  // only decode slot is still waiting on WASM, which looked like "56 cap/s,
+  // 0 dec/s" with nothing ever submitted.
+  if (!pool.isReady) return;
   if (pool.busyCount === pool.size) {
     capturesDropped++;
-    return; // all busy — drop it, no harm done
+    return;
   }
+  const now = performance.now();
 
   for (let i = regions.length - 1; i >= 0; i--) {
     if (now - regions[i]!.seen > REGION_TTL_MS) regions.splice(i, 1);
@@ -795,6 +922,8 @@ function captureFrame() {
     if (fullScanDue) {
       lastFullScan = now;
       fullScans++;
+      captureTimes.push(now);
+      totalCaptures++;
       submitBitmap(createImageBitmap(video), { ox: 0, oy: 0, full: true });
       return;
     }
@@ -802,6 +931,7 @@ function captureFrame() {
     // "create no more than the free slots seen now" — submitBitmap closes
     // any bitmap that loses the race anyway.
     let free = pool.size - pool.busyCount;
+    let submitted = false;
     for (let i = 0; i < regions.length && free > 0; i++) {
       const r = regions[(i + cropRotate) % regions.length]!;
       const size = Math.max(r.w, r.h);
@@ -812,6 +942,7 @@ function captureFrame() {
       const h = Math.min(vh - y, Math.ceil(r.h + 2 * pad));
       if (w < 32 || h < 32) continue;
       free--;
+      submitted = true;
       submitBitmap(createImageBitmap(video, x, y, w, h), {
         ox: x,
         oy: y,
@@ -819,6 +950,10 @@ function captureFrame() {
         quad: r.quad,
         dim: r.dim,
       });
+    }
+    if (submitted) {
+      captureTimes.push(now);
+      totalCaptures++;
     }
     cropRotate++;
     return;
@@ -830,11 +965,19 @@ function captureFrame() {
     grab.height = vh;
   }
   const ctx = grab.getContext("2d", { willReadFrequently: true })!;
-  ctx.drawImage(video, 0, 0);
+  ctx.drawImage(video, 0, 0, vw, vh);
   if (fullScanDue) {
     lastFullScan = now;
     fullScans++;
     const img = ctx.getImageData(0, 0, vw, vh);
+    if (frameLooksBlank(img.data)) {
+      blankStreak++;
+      if (blankStreak === 40) showError(msg.receive.errBlankCapture);
+      return;
+    }
+    blankStreak = 0;
+    captureTimes.push(now);
+    totalCaptures++;
     pool.submit(
       { id: frameId++, buf: img.data.buffer, w: vw, h: vh, ox: 0, oy: 0, full: true },
       [img.data.buffer],
@@ -844,6 +987,7 @@ function captureFrame() {
   // One crop per known code, rotated so a short worker pool doesn't starve
   // the same tail region every frame. Submitting stops when the pool is full;
   // the fountain absorbs whatever gets dropped.
+  let submitted = false;
   for (let i = 0; i < regions.length; i++) {
     const r = regions[(i + cropRotate) % regions.length]!;
     // The pad leads a moving target: base margin plus twice the displacement
@@ -866,7 +1010,12 @@ function captureFrame() {
       [img.data.buffer],
     );
     if (!taken) break;
+    submitted = true;
     cropsSubmitted++;
+  }
+  if (submitted) {
+    captureTimes.push(now);
+    totalCaptures++;
   }
   cropRotate++;
 }
@@ -890,7 +1039,7 @@ function linkProven() {
   if (!noSignal.frameDecoded()) return;
   noSignalToast.hidden = true;
   // The dialog's premise ("nothing decoded") just became false mid-read.
-  if (noSignalDialog.open) noSignalDialog.close();
+  if (noSignalDialog.open || noSignalDialog.hasAttribute("open")) closeDialog(noSignalDialog);
 }
 
 function onDecoded(bytes: Uint8Array, box?: SymbolBox, info?: SymbolInfo) {
@@ -1415,9 +1564,16 @@ function updateStats() {
   };
   prune(captureTimes);
   prune(decodeTimes);
+  prune(tryTimes);
   const perSecond = (a: number[]) => a.length / (STATS_WINDOW_MS / 1000);
   metric("m-cap").textContent = perSecond(captureTimes).toFixed(0);
   metric("m-dec").textContent = perSecond(decodeTimes).toFixed(1);
+  if (!decoder && !stats.classList.contains("error")) {
+    const { vw, vh } = captureSize();
+    setStatus(
+      `${vw || "?"}×${vh || "?"} · ${perSecond(captureTimes).toFixed(0)} cap/s · ${perSecond(tryTimes).toFixed(1)} try/s · ${perSecond(decodeTimes).toFixed(1)} dec/s`,
+    );
+  }
   if (noSignal.tick(now)) showNoSignalHint();
   if (!decoder) return;
   const elapsed = (now - startTs) / 1000;

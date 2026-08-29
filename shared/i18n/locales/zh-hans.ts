@@ -40,6 +40,9 @@ export const messages: Messages = {
     cardReceiveBody: "把摄像头对准发送方的屏幕，即可接收文件。",
     cardReceiveAction: "接收",
     shareSite: "分享 Decimen",
+    certDownload: "下载 HTTPS 证书",
+    certHint:
+      "iPhone 开摄像头需要先信任此证书。下载后到「设置 → 描述文件」安装，再在「设置 → 通用 → 关于本机 → 证书信任设置」中打开完全信任。",
     supportTitle: "免费、开源、无广告",
     supportBodyHtml:
       '如果 Decimen 帮到了你，欢迎<a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">请我喝杯咖啡</a>。',
@@ -173,11 +176,14 @@ export const messages: Messages = {
     autoShowLabel: "自动显示接收到的文件",
     settingsApplied: "在摄像头启动时生效。",
     errSecureContext:
-      "摄像头需要安全上下文——要在其他设备上使用摄像头，" +
-      "此页面必须通过 https 提供。`npm run dev` 已满足此要求。",
+      "摄像头需要 https——请用手机打开 https:// 地址，不要用 http。" +
+      "自签证书请点一次“继续访问”。iOS 14 还需安装证书（下载 /__cert.pem），" +
+      "并在 设置 → 通用 → 关于本机 → 证书信任设置 中打开完全信任。",
     errPermissionDenied: "摄像头权限被拒绝——请先允许，然后再次点按“启动摄像头”。",
     errCameraGone: "该摄像头已不可用——请把摄像头设回“自动”，再点按“启动摄像头”。",
     errCamera: (message) => `摄像头：${message}`,
+    errDecoder: "二维码解码器未能启动——请刷新页面。",
+    errBlankCapture: "采集到的画面是空的——请刷新页面，并保持预览在屏幕上。",
     errRestartFailed: "摄像头：切换后无法重新启动——请点按“启动摄像头”。",
     errLiveChangeRefused: "此摄像头拒绝实时更改——重新启动后生效",
     cameraRefusedKeptPrevious: "该摄像头无法启动——已保留之前的摄像头",

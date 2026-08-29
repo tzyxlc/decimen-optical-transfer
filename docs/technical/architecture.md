@@ -8,7 +8,7 @@ Three pages, one shared core, a handful of single-purpose build plugins. No fram
 |---|---|---|
 | `/` | home: cards, share dialog | `home/main.ts` |
 | `send/` | file/snippet → fountain-coded QR stream on a canvas | `send/main.ts` |
-| `receive/` | camera → WASM QR decode in workers → fountain decoder → file | `receive/main.ts`, `receive/worker.ts` |
+| `receive/` | camera → WASM QR decode (workers, or main thread on iOS 14) → fountain decoder → file | `receive/main.ts`, `receive/worker.ts` |
 
 The send page carries two non-entry modules: `send/qr-frame.ts`, the one QR
 generation path (pinned mask, version locking) shared by the live stream and
@@ -61,4 +61,4 @@ path, released separately as
 artifacts self-identify (banner + `version()`/`build()` exports); licensing
 in `NOTICE.md` alongside them.
 
-Typechecking: `tsconfig.json` covers the pages and `shared/`; `tsconfig.node.json` covers `build/` and `vite.config.ts` (both run in `npm run build`).
+Typechecking: `tsconfig.json` covers the pages and `shared/`; `tsconfig.node.json` covers `build/` and `vite.config.ts` (both run in `npm run build`). Site and standalone builds target ES2020 so Safari 14 / iOS 14 can parse the entries (no top-level `await`, IIFE decode workers).

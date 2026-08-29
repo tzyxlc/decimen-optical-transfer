@@ -5,7 +5,7 @@
 // wires behaviour to it.
 
 import QRCode from "qrcode";
-import { closeOnBackdropClick } from "./dialog";
+import { closeDialog, closeOnBackdropClick, openDialog } from "./dialog";
 import { msg } from "./i18n";
 
 /** Wire the page's share dialog; returns the opener. */
@@ -16,7 +16,7 @@ export function wireShareDialog(): () => void {
   const copyBtn = document.getElementById("share-copy") as HTMLButtonElement;
   const nativeBtn = document.getElementById("share-native") as HTMLButtonElement;
 
-  document.getElementById("share-close")!.addEventListener("click", () => dialog.close());
+  document.getElementById("share-close")!.addEventListener("click", () => closeDialog(dialog));
   closeOnBackdropClick(dialog);
 
   copyBtn.addEventListener("click", async () => {
@@ -48,6 +48,6 @@ export function wireShareDialog(): () => void {
       void QRCode.toCanvas(canvas, urlInput.value, { margin: 2, width: 220 });
     }
     nativeBtn.hidden = typeof navigator.share !== "function";
-    dialog.showModal();
+    openDialog(dialog);
   };
 }

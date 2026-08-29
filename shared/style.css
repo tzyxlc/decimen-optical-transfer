@@ -1121,6 +1121,18 @@ details.settings details.subsection .hint {
   border-radius: 0;
 }
 
+/* Off-document video→canvas copies are black on iOS 14; this is the
+   capture canvas, parked out of view. */
+.grab-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Detection indicators paint over the video; the HUD (z-index: 2) stays on top. */
 .preview .detect-overlay {
   position: absolute;
@@ -1223,6 +1235,12 @@ details.settings details.subsection .hint {
   color: var(--muted);
 }
 
+/* Browsers without native <dialog> (iOS 15.0–15.3) do not hide an unopened
+   dialog. Without this, the help box sits on the page and Got it does nothing. */
+dialog:not([open]) {
+  display: none;
+}
+
 .help-dialog {
   width: min(92vw, 440px);
   color: var(--muted);
@@ -1272,6 +1290,27 @@ details.settings details.subsection .hint {
 
 /* Centered at the bottom of the page, with clear air on both sides: a
    comfortable band below the cards, and the privacy note's own margin below. */
+.home-cert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  text-align: center;
+}
+
+.home-cert[hidden] {
+  display: none;
+}
+
+.home-cert .cert-hint {
+  margin: 0;
+  max-width: 36em;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .home-share {
   display: flex;
   justify-content: center;

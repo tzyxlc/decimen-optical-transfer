@@ -41,6 +41,9 @@ export const messages: Messages = {
     cardReceiveBody: "カメラを送信側の画面に向けると、ファイルを受信できます。",
     cardReceiveAction: "受信",
     shareSite: "Decimen を共有",
+    certDownload: "HTTPS 証明書をダウンロード",
+    certHint:
+      "iPhone でカメラを使うにはこれが必要です。プロファイルをインストールし、「設定 → 一般 → 情報 → 証明書信頼設定」で完全な信頼を有効にしてください。",
     supportTitle: "無料・オープンソース・広告なし",
     supportBodyHtml:
       'Decimen が役に立ったら、<a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">コーヒーを1杯おごる</a>ことで応援できます。',
@@ -186,6 +189,8 @@ export const messages: Messages = {
     errCameraGone:
       "そのカメラは利用できなくなりました。カメラを「自動」に戻して「カメラを開始」をタップしてください。",
     errCamera: (message) => `カメラ: ${message}`,
+    errDecoder: "QRデコーダーを起動できませんでした。ページを再読み込みしてください。",
+    errBlankCapture: "カメラ映像が空です。ページを再読み込みしてください。",
     errRestartFailed:
       "カメラ: 切り替え後に再起動できませんでした。「カメラを開始」をタップしてください。",
     errLiveChangeRefused:

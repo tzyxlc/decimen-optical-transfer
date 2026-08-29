@@ -138,10 +138,9 @@ export default defineConfig(({ mode }) => {
       // plugin list, so both plugins have to be registered again here.
       worker: { format: "iife", plugins: () => [useInlineVariants(__dirname), inlineCodecWasm()] },
       build: {
-        // ES2022 for top-level await: the entries await initI18n() before
-        // touching the DOM. Chrome 89 / Firefox 89 / Safari 15 — anything
-        // older already lacks the camera/wasm/worker floor this app stands on.
-        target: "es2022",
+        // ES2020: Safari 14 / iOS 14 (iPhone 11). Entries must not use
+        // top-level await — Safari 14 cannot parse it. Chrome 80 / Firefox 74.
+        target: "es2020",
         outDir,
         emptyOutDir: false,
         assetsInlineLimit: Number.MAX_SAFE_INTEGER,
@@ -164,6 +163,13 @@ export default defineConfig(({ mode }) => {
           start_url: "./",
         },
         workbox: {
+          // This is three real HTML pages, not an SPA. The plugin's default
+          // NavigationRoute → index.html made /receive/?v=… and /__cert.pem
+          // render the home page (Workbox only ignores utm_* by default, so a
+          // cache-bust query missed receive/index.html and fell through).
+          navigateFallback: undefined,
+          navigateFallbackDenylist: [/.*/],
+          ignoreURLParametersMatching: [/^v$/i, /^utm_/, /^fbclid$/],
           // Without this a rebuilt site serves stale pages indefinitely.
           // `registerType: "autoUpdate"` gives the new worker skipWaiting(), so
           // it activates at once — but activating is not the same as taking
@@ -206,9 +212,11 @@ export default defineConfig(({ mode }) => {
       licenseBanner(pkg.version),
       diagnosticsEndpoint(pkg.version),
     ],
+    // IIFE workers: Safari 14 has no module workers (`type: "module"` throws).
+    worker: { format: "iife" },
     build: {
-      // Same ES2022/top-level-await floor as the standalone build above.
-      target: "es2022",
+      // Same ES2020 / Safari 14 floor as the standalone build above.
+      target: "es2020",
       rollupOptions: {
         input: {
           index: resolve(__dirname, "index.html"),

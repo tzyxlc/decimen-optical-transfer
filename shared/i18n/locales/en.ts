@@ -43,6 +43,9 @@ export const messages: Messages = {
     cardReceiveBody: "Point your camera at the sender's screen to receive the file.",
     cardReceiveAction: "Receive",
     shareSite: "Share Decimen",
+    certDownload: "Download HTTPS certificate",
+    certHint:
+      "iPhone needs this for the camera. Install the profile, then enable full trust under Settings → General → About → Certificate Trust Settings.",
     supportTitle: "Free, open source, no ads",
     supportBodyHtml:
       'If Decimen made your day easier, you can <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">buy me a coffee</a>.',
@@ -179,12 +182,16 @@ export const messages: Messages = {
     autoShowLabel: "Show received files automatically",
     settingsApplied: "Applied when the camera starts.",
     errSecureContext:
-      "camera needs a secure context — this page must be served over https to " +
-      "use the camera from another device. `npm run dev` already is.",
+      "camera needs https — open the https:// address on the phone, not http. " +
+      "Accept the certificate warning once. On iOS 14 also install the cert " +
+      "(download /__cert.pem) and enable it under Settings → General → About → " +
+      "Certificate Trust Settings.",
     errPermissionDenied: "camera permission denied — allow it, then tap Start camera again.",
     errCameraGone:
       "that camera is no longer available — set camera back to auto and tap Start camera.",
     errCamera: (message) => `camera: ${message}`,
+    errDecoder: "the QR decoder failed to start — reload the page.",
+    errBlankCapture: "camera frames are blank — reload the page. On iOS, keep the preview on screen.",
     errRestartFailed: "camera: could not restart after the switch — tap Start camera.",
     errLiveChangeRefused: "this camera refused a live change — restart to apply",
     cameraRefusedKeptPrevious: "that camera refused to start — kept the previous one",

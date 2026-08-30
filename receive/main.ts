@@ -48,9 +48,11 @@ import {
 import { NO_SIGNAL_HINT_FRAME_BYTES, NO_SIGNAL_HINT_TX_FPS } from "../shared/send-settings";
 import { statusLine } from "../shared/status-line";
 import { requestScreenWakeLock } from "../shared/wake-lock";
-import { applyAdvancedConstraint, isIOS, probeCameraCapabilities } from "../shared/platform";
+import { applyAdvancedConstraint, isIOS, isIOS14, probeCameraCapabilities } from "../shared/platform";
 import { closeDialog, closeOnBackdropClick, openDialog } from "../shared/dialog";
 import { formatIndexRanges } from "../shared/format";
+import { copyText } from "../shared/clipboard";
+import { previewBoxSize, supportsAspectRatio } from "../shared/preview-box";
 import { supportLink } from "./support";
 
 const startBtn = document.getElementById("start") as HTMLButtonElement;
@@ -137,7 +139,7 @@ let statsTimer: ReturnType<typeof setInterval> | undefined;
 const noSignal = new NoSignalHintTimer(NO_SIGNAL_FIRST_MS, NO_SIGNAL_DISMISSED_MS);
 let reportDecoderFailure: (detail?: string) => void = () => undefined;
 let createWorker: () => PoolWorker = createDecodeWorker;
-const ios14 = isIOS && /OS 14_/.test(navigator.userAgent);
+const ios14 = isIOS14;
 const pool = new DecodeWorkerPool(
   () => createWorker(),
   (bytes, box, info) => onDecoded(bytes, box, info),
@@ -323,13 +325,33 @@ function noteRegion(box: SymbolBox, now: number, decoded = true, info?: SymbolIn
  *  preview. Sync the box to the stream's real shape instead; with the aspect
  *  matched, contain shows every pixel the decoder gets, edge to edge. */
 function syncPreviewAspect() {
-  if (video.videoWidth && video.videoHeight) {
-    cameraBox.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (!vw || !vh) return;
+  cameraBox.style.aspectRatio = `${vw} / ${vh}`;
+  // Safari 15: aspect-ratio. iOS 14 ignores it, so pin width/height in px.
+  if (supportsAspectRatio()) {
+    cameraBox.style.width = "";
+    cameraBox.style.height = "";
+    return;
   }
+  const landscape = window.matchMedia("(orientation: landscape) and (max-height: 620px)").matches;
+  if (landscape) {
+    cameraBox.style.width = "auto";
+    cameraBox.style.height = `${Math.max(80, window.innerHeight - 108)}px`;
+    return;
+  }
+  const boxW = cameraBox.parentElement?.clientWidth || cameraBox.clientWidth;
+  if (!boxW) return;
+  const chrome = window.innerWidth <= 520 ? 128 : 156;
+  const { width, height } = previewBoxSize(vw, vh, Math.min(boxW, 640), window.innerHeight, chrome);
+  cameraBox.style.width = `${width}px`;
+  cameraBox.style.height = `${height}px`;
 }
 // Fires whenever the intrinsic size changes — device rotation, or a live
 // capture-width change the camera accepted.
 video.addEventListener("resize", syncPreviewAspect);
+window.addEventListener("resize", syncPreviewAspect);
 
 // Viewfinder corner brackets around each code the decoder is tracking, fading
 // out once a region stops producing decodes. Long before REGION_TTL_MS: the
@@ -756,6 +778,9 @@ async function start() {
   // error paths below all have to leave a usable Start button behind.
   startBtn.disabled = true;
   startBtn.textContent = msg.receive.starting;
+  // Before any await: iOS 14 has no Wake Lock API, and the audio fallback
+  // only starts from a user gesture. A 20 s WASM init would be too late.
+  requestScreenWakeLock();
   try {
     stream = await acquireCamera(cameraSelection());
   } catch (err) {
@@ -827,7 +852,6 @@ async function start() {
   captureGen++;
   scheduleFrame(captureGen);
   statsTimer = setInterval(updateStats, 500);
-  await requestScreenWakeLock();
 }
 
 /** Report what the camera actually negotiated — iOS in particular will happily
@@ -1454,6 +1478,13 @@ async function finish(container: Uint8Array, hashOk: boolean, seconds: number) {
     download.href = url;
     download.download = file.name;
     download.textContent = msg.receive.saveFile(file.name);
+    if (isIOS) {
+      // iOS Safari ignores `download` and often swallows blob: navigations
+      // in the same tab. A new tab lets the user Share → Save to Files.
+      download.removeAttribute("download");
+      download.target = "_blank";
+      download.rel = "noopener noreferrer";
+    }
     // Reading order of the finished page: heading, the run's numbers, the
     // thing that arrived, Save under it, "Receive another file", and the
     // Transfer summary panel last in its natural spot after #result.
@@ -1496,7 +1527,12 @@ async function finish(container: Uint8Array, hashOk: boolean, seconds: number) {
  *  setting governs. Everything else only ever offered a Save link — there is
  *  nothing to suppress. */
 function isPreviewable(type: string): boolean {
-  return type.startsWith("image/") || type.startsWith("video/") || type.startsWith("audio/");
+  if (type.startsWith("image/")) return true;
+  // iOS 14 unregisters the service worker, so the ranged HTTP path that
+  // AVFoundation will actually play is gone; a blob: <video> is a black box.
+  // Save (new tab) is the working offer. Images are fine as blob: <img>.
+  if (ios14) return false;
+  return type.startsWith("video/") || type.startsWith("audio/");
 }
 
 function mediaNoun(type: string): string {
@@ -1528,7 +1564,11 @@ async function previewElement(file: OpticalFile, blobUrl: string): Promise<HTMLE
   player.setAttribute("aria-label", msg.receive.receivedFileAriaLabel(file.name));
   // Inline, and never autoplay — the user taps play (which is also the gesture
   // that lets it start with sound).
-  if (player instanceof HTMLVideoElement) player.playsInline = true;
+  if (player instanceof HTMLVideoElement) {
+    player.playsInline = true;
+    player.setAttribute("playsinline", "");
+    player.setAttribute("webkit-playsinline", "");
+  }
   const src = await servableMediaUrl(file, blobUrl);
   if (src !== blobUrl) {
     // AVFoundation has been seen bypassing service workers for media loads; if
@@ -1681,7 +1721,7 @@ function showSnippet(text: string, summaryLine: string, reveal: boolean) {
   copy.textContent = msg.common.copy;
   copy.addEventListener("click", async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      await copyText(text);
       copy.textContent = msg.common.copied;
       setTimeout(() => { copy.textContent = msg.common.copy; }, 1500);
     } catch {

@@ -179,6 +179,7 @@ body.qr-full .send-shell {
 
 body.qr-full #stage {
   width: 100%;
+  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   align-items: center;
@@ -282,6 +283,7 @@ a.download {
      min-content width is the whole thing, and as a flex item it would refuse to
      shrink and push the row off a phone screen. */
   max-width: 100%;
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
 }
 details.settings {
@@ -514,6 +516,7 @@ details.settings details.subsection .hint {
   align-items: stretch;
   gap: 0;
   padding: 0;
+  min-height: 100vh;
   min-height: 100svh;
   background:
     radial-gradient(circle at 80% -10%, rgba(var(--accent-rgb), 0.07), transparent 35%),
@@ -536,6 +539,7 @@ details.settings details.subsection .hint {
   padding: max(14px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) 14px max(22px, env(safe-area-inset-left));
   border-bottom: 1px solid var(--line);
   background: rgba(var(--bg-rgb), 0.9);
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   position: relative;
   z-index: 3;
@@ -1109,6 +1113,7 @@ details.settings details.subsection .hint {
   position: relative;
   width: min(100%, 640px);
   aspect-ratio: 4 / 3;
+  max-height: calc(100vh - 156px);
   max-height: calc(100dvh - 156px);
   background: var(--viewport-bg);
   border: 1px solid var(--line-bright);
@@ -1144,6 +1149,10 @@ details.settings details.subsection .hint {
 /* Detection indicators paint over the video; the HUD (z-index: 2) stays on top. */
 .preview .detect-overlay {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -1153,6 +1162,9 @@ details.settings details.subsection .hint {
 
 .transfer-hud {
   position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   inset: auto 0 0;
   z-index: 2;
   padding: 54px 14px 14px;
@@ -1200,6 +1212,7 @@ details.settings details.subsection .hint {
   margin: 0;
   padding: 16px;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
   overflow-wrap: anywhere;
   color: var(--text);
   background: var(--panel);
@@ -1243,10 +1256,23 @@ details.settings details.subsection .hint {
   color: var(--muted);
 }
 
-/* Browsers without native <dialog> (iOS 15.0–15.3) do not hide an unopened
-   dialog. Without this, the help box sits on the page and Got it does nothing. */
+/* Browsers without native <dialog> (iOS 14, iOS 15.0–15.3) do not hide an
+   unopened dialog. Without this, the help box sits on the page and Got it
+   does nothing. */
 dialog:not([open]) {
   display: none;
+}
+
+/* Sibling of the dialog, injected by openDialog() when showModal is missing.
+   Clicks here close the box (see shared/dialog.ts). */
+.dialog-fallback-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.55);
 }
 
 .help-dialog {
@@ -1258,6 +1284,18 @@ dialog:not([open]) {
   padding: 18px 20px;
   font-size: 13px;
   line-height: 1.6;
+}
+
+.help-dialog.dialog-fallback[open] {
+  position: fixed;
+  z-index: 41;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  display: block;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
 }
 
 .help-dialog::backdrop {
@@ -1280,6 +1318,7 @@ dialog:not([open]) {
 
 .help-dialog ul {
   margin: 0;
+  padding-left: 18px;
   padding-inline-start: 18px;
 }
 
@@ -1492,6 +1531,7 @@ dialog:not([open]) {
     font-size: 10px;
   }
   .preview {
+    max-height: calc(100vh - 128px);
     max-height: calc(100dvh - 128px);
   }
   .progress-status {
@@ -1517,6 +1557,7 @@ dialog:not([open]) {
   }
   .preview {
     width: auto;
+    height: calc(100vh - 108px);
     height: calc(100dvh - 108px);
     max-width: 100%;
   }

@@ -459,7 +459,7 @@ async function main() {
     el.addEventListener("change", () => void updateExportEstimate());
   }
   exportButton.addEventListener("click", () => void runExport());
-  await requestScreenWakeLock();
+  requestScreenWakeLock();
 }
 
 /** Only on a fresh pick — a settings change restarts the stream too, and

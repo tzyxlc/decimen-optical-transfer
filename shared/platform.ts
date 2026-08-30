@@ -14,6 +14,11 @@ export const isIOS: boolean =
   (/iPad|iPhone|iPod/.test(nav.userAgent) ||
     (nav.platform === "MacIntel" && nav.maxTouchPoints > 1));
 
+/** Safari 14 on iPhone / iPod / iPad. The UA is the only signal — these
+ *  quirks (no module workers, no `aspect-ratio`, WASM-in-Worker) are not
+ *  probeable any other way. */
+export const isIOS14: boolean = isIOS && /OS 14_/.test(nav?.userAgent ?? "");
+
 export const isAndroid: boolean = !!nav && /Android/.test(nav.userAgent);
 
 // Chrome-on-Android extensions to the mediacapture spec that lib.dom doesn't

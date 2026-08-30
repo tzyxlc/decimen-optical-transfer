@@ -182,12 +182,13 @@ function testPayload(byteLength: number): Uint8Array {
 test("the encoded stream is byte-identical to its recorded fingerprint", () => {
   // The end-to-end pin: covers dlog, solitonCdf, frameSeed, splitmix32,
   // frameIndices, the block padding and the XOR order in one hash.
-  // Re-recorded for wire format v2 (systematic carousel, header magic 0x0D).
-  // The k=179 and k=716 hashes cover only the sweep (64 frames < k); k=23
-  // covers a full sweep plus repair frames.
+  // Re-recorded when the carousel started rotating the sweep each cycle
+  // (residue-locked cameras at k=4). k=179 and k=716 hashes cover only the
+  // first cycle's sweep (64 frames < k); k=23 covers a full sweep plus the
+  // rotated second cycle.
   const golden: [number, number, number, string][] = [
     [1, 64, 1, "k=1 fnv=0xf6a115c5"],
-    [23, 64, 7, "k=23 fnv=0x4a5d3eaa"],
+    [23, 64, 7, "k=23 fnv=0xdb2d2d2a"],
     [179, 2933, 4242, "k=179 fnv=0x54f78d05"],
     [716, 1445, 65535, "k=716 fnv=0x75b73b85"],
   ];
@@ -251,10 +252,12 @@ test("a re-swept block the receiver already solved counts as redundant, not prog
   decoder.addFrame(0, encoder.encode(0));
   assert.equal(decoder.solvedCount, 1);
   assert.equal(decoder.framesRedundant, 0);
+  assert.equal(decoder.unsolvedBlocks().includes(0), false);
+  assert.equal(decoder.unsolvedBlocks()[0], 1);
 
-  // Same block, next cycle: a NEW seq carrying nothing the receiver lacks.
-  const nextCycle = cycleLength(encoder.k);
-  decoder.addFrame(nextCycle, encoder.encode(nextCycle));
+  // Same block, k cycles later: pos 0 rotates back to block 0.
+  const nextSame = encoder.k * cycleLength(encoder.k);
+  decoder.addFrame(nextSame, encoder.encode(nextSame));
   assert.equal(decoder.framesNew, 2, "a fresh seq is still a new frame");
   assert.equal(decoder.framesDup, 0);
   assert.equal(decoder.framesRedundant, 1);
@@ -264,6 +267,32 @@ test("a re-swept block the receiver already solved counts as redundant, not prog
   decoder.addFrame(1, encoder.encode(1));
   assert.equal(decoder.framesRedundant, 1);
   assert.equal(decoder.solvedCount, 2);
+});
+
+test("a capture cadence locked to one carousel residue still finishes k=4", () => {
+  // 10 KB at 2931-byte blocks is k=4, cycle 8. Sampling every 8th seq (or a
+  // 1500 ms full-scan at 60 fps, which steps by 90 ≡ 2 (mod 8)) used to
+  // freeze on one slot — unique seqs, bar at 99%, zero blocks. The sweep
+  // now rotates each cycle, and odd cycles turn the repair half into
+  // degree-1, so every residue class still peels.
+  const blockLen = 2931;
+  const payload = testPayload(4 * blockLen);
+  const encoder = new LTEncoder(payload, blockLen, 7);
+  assert.equal(encoder.k, 4);
+  for (const residue of [0, 2, 4, 7]) {
+    const locked = new LTDecoder(4, blockLen, 7, payload.length);
+    for (let i = 0; i < 40; i++) {
+      const seq = residue + i * 8;
+      locked.addFrame(seq, encoder.encode(seq));
+    }
+    assert.ok(locked.isComplete, `residue ${residue} stuck at ${locked.solvedCount}/4`);
+    assert.deepEqual(locked.assemble(), payload);
+  }
+  const stepped = new LTDecoder(4, blockLen, 7, payload.length);
+  for (let i = 0; i < 80; i++) {
+    stepped.addFrame(i * 90, encoder.encode(i * 90));
+  }
+  assert.ok(stepped.isComplete, `step-90 stuck at ${stepped.solvedCount}/4`);
 });
 
 test("a payload survives the fountain exactly", () => {
@@ -308,8 +337,9 @@ test("the carousel composition is systematic in the sweep, mid-degree after", ()
     assert.equal(cycleLength(k), 2 * k);
     for (const pos of new Set([0, k >> 1, k - 1])) {
       assert.deepEqual(frameComposition(k, 9, pos), [pos], `k=${k} sweep pos=${pos}`);
-      // The sweep restarts every cycle, at any cycle number.
-      assert.deepEqual(frameComposition(k, 9, pos + 6 * cycleLength(k)), [pos]);
+      // Later cycles rotate the sweep so a residue-locked camera still
+      // visits every block — cycle 6 adds 6 (mod k).
+      assert.deepEqual(frameComposition(k, 9, pos + 6 * cycleLength(k)), [(pos + 6) % k]);
     }
     for (const seq of [k, k + 1, 2 * k - 1]) {
       const idx = frameComposition(k, 9, seq);
@@ -317,6 +347,9 @@ test("the carousel composition is systematic in the sweep, mid-degree after", ()
       assert.equal(new Set(idx).size, idx.length);
       for (const b of idx) assert.ok(Number.isInteger(b) && b >= 0 && b < k);
     }
+    // Odd-cycle repair half is a rotated degree-1, not a high-degree XOR.
+    const oddRepair = k + cycleLength(k);
+    assert.deepEqual(frameComposition(k, 9, oddRepair), [0]);
   }
 });
 

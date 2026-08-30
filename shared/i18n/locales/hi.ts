@@ -168,6 +168,7 @@ export const messages: Messages = {
     metricElapsed: "बीता समय",
     metricFrames: "फ़्रेम नए/दोहराए",
     metricBlocks: "ब्लॉक K",
+    metricMissing: "अनुपस्थित ब्लॉक",
     metricBlockLen: "ब्लॉक लंबाई",
     metricTransfer: "ट्रांसफ़र",
     settingsSummary: "रिसीव सेटिंग्स",

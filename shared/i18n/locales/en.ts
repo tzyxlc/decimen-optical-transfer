@@ -170,6 +170,7 @@ export const messages: Messages = {
     metricElapsed: "elapsed",
     metricFrames: "frames new/dup",
     metricBlocks: "blocks K",
+    metricMissing: "missing blocks",
     metricBlockLen: "block len",
     metricTransfer: "transfer",
     settingsSummary: "Receive settings",

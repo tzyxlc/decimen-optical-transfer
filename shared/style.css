@@ -464,6 +464,14 @@ details.settings details.subsection .hint {
 .metric .v.ok {
   color: var(--green);
 }
+.metric-wide {
+  grid-column: 1 / -1;
+}
+.metric-wide .v {
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
 
 /* Product shell ------------------------------------------------------------
    "Aperture": cool blue-black with a scanner cyan. Reads as measurement

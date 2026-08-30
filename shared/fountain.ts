@@ -167,14 +167,26 @@ function repairIndices(k: number, sessionId: number, seq: number): number[] {
  * Repair frames seed from the ABSOLUTE seq, so every cycle's repair frames
  * draw different subsets — re-watching the carousel never replays them.
  *
- * This carousel arrived with wire v2 and is unchanged in v3 — that break
- * moved header bytes, not the fountain (see protocol.ts). The v1 soliton
- * stream (frameIndices, solitonCdf, dlog) is kept above, pinned by its golden
+ * The sweep rotates by `cycle` so that sampling one residue of the 2k
+ * carousel (a 7 cap/s camera vs a 60 fps sender is ~every 8th frame, which
+ * IS the whole cycle at k=4) still visits every source block. Odd cycles
+ * also turn the repair half into a rotated degree-1 sweep: otherwise the
+ * repair residues never peel at all (k=4 repair degree is k, a XOR of
+ * everything, useless until k-1 blocks exist). First cycle is unchanged —
+ * seq 0..k-1 is still [0]..[k-1].
+ *
+ * This carousel arrived with wire v2; the rotation above is a decode-side
+ * contract change and needs a matching sender. The v1 soliton stream
+ * (frameIndices, solitonCdf, dlog) is kept above, pinned by its golden
  * vectors, in case a future format wants it back — it is no longer emitted.
  */
 export function frameComposition(k: number, sessionId: number, seq: number): number[] {
-  const pos = seq % cycleLength(k);
-  return pos < k ? [pos] : repairIndices(k, sessionId, seq);
+  const cycleLen = cycleLength(k);
+  const cycle = Math.floor(seq / cycleLen);
+  const pos = seq % cycleLen;
+  if (pos < k) return [(pos + cycle) % k];
+  if (cycle & 1) return [(pos - k + (cycle >> 1)) % k];
+  return repairIndices(k, sessionId, seq);
 }
 
 function xorInto(dst: Uint32Array, src: Uint32Array): void {
@@ -244,6 +256,16 @@ export class LTDecoder {
 
   get isComplete(): boolean {
     return this.solvedCount >= this.k;
+  }
+
+  /** Source-block indices not yet peeled, sorted. Empty when complete. */
+  unsolvedBlocks(): number[] {
+    if (this.isComplete) return [];
+    const out: number[] = [];
+    for (let i = 0; i < this.k; i++) {
+      if (!this.solved[i]) out.push(i);
+    }
+    return out;
   }
 
   addFrame(seq: number, block: Uint8Array): void {

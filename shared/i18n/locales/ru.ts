@@ -174,6 +174,7 @@ export const messages: Messages = {
     metricElapsed: "прошло",
     metricFrames: "кадры нов./повт.",
     metricBlocks: "блоки K",
+    metricMissing: "недостающие блоки",
     metricBlockLen: "длина блока",
     metricTransfer: "передача",
     settingsSummary: "Настройки приёма",

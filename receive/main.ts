@@ -50,6 +50,7 @@ import { statusLine } from "../shared/status-line";
 import { requestScreenWakeLock } from "../shared/wake-lock";
 import { applyAdvancedConstraint, isIOS, probeCameraCapabilities } from "../shared/platform";
 import { closeDialog, closeOnBackdropClick, openDialog } from "../shared/dialog";
+import { formatIndexRanges } from "../shared/format";
 import { supportLink } from "./support";
 
 const startBtn = document.getElementById("start") as HTMLButtonElement;
@@ -64,6 +65,8 @@ const progressStatus = document.getElementById("progress-status")!;
 const progressLabel = document.getElementById("progress-label")!;
 const etaLabel = document.getElementById("eta-label")!;
 const result = document.getElementById("result")!;
+/** Blob URLs shown in #result — revoked when the next receive is armed. */
+const resultUrls: string[] = [];
 const metricsEl = document.getElementById("metrics")!;
 const diagnosticsEl = document.getElementById("diagnostics") as HTMLDetailsElement | null;
 const settingsEl = document.getElementById("settings")!;
@@ -222,10 +225,49 @@ const ACQUISITION_SCAN_MS = ios14 ? 200 : 100;
 const EXPECTED_REGIONS_DECAY_MS = 10_000;
 const REGION_PAD = 0.35;
 const MAX_REGIONS = 9;
-let lastFullScan = 0;
+// Absolute time the next full-frame scan is due. A fixed 1500 ms interval at
+// 60 fps sender is exactly 90 frames — divisible by 2,3,5,6,9,10 — so the
+// sample phase locked to a residue class of the 2k-long carousel. A 10 KB
+// file (k=4, cycle 8) then ran the progress bar to 99% on unique seqs while
+// never seeing the odd slots that hold the missing blocks. Jitter the
+// interval so 60/30/24 Hz senders cannot stay locked.
+let nextFullScanAt = 0;
+/** Wall-clock gate after a phase hop. Skipping whole camera ticks is a
+ *  no-op: 7 cap/s vs 60 fps already is ~8 sender frames, which IS the k=4
+ *  cycle, and skipCaptures burned down while the WASM worker was still busy.
+ *  Hold a random 20–110 ms AFTER the worker frees so the next submit lands
+ *  on a different residue. */
+let holdUntil = 0;
+let stallSolved = 0;
+let stallFramesNew = 0;
+let peelStall = 0;
 let cropRotate = 0;
 let expectedRegions = 0;
 let expectedRegionsAt = 0;
+
+function scheduleNextFullScan(now: number, live: number): void {
+  const base = peelStalled()
+    ? ACQUISITION_SCAN_MS
+    : live === 0
+      ? ACQUISITION_SCAN_MS
+      : live < expectedRegions
+        ? FULL_SCAN_DEGRADED_MS
+        : FULL_SCAN_INTERVAL_MS;
+  nextFullScanAt = now + base * (0.8 + Math.random() * 0.4) + Math.random() * 37;
+}
+
+/** Unique seqs keep arriving but almost no blocks peel — the crop cadence is
+ *  locked to a residue class of the 2k carousel (a 7 cap/s phone vs 60 fps
+ *  sender is ~every 8th displayed frame, which is the whole cycle at k=4). */
+function peelStalled(): boolean {
+  if (!decoder || decoder.isComplete) return false;
+  const k = decoder.k;
+  return decoder.framesNew >= Math.max(6, k) && decoder.solvedCount < Math.max(1, k * 0.15);
+}
+
+function phaseHop(): void {
+  holdUntil = Math.max(holdUntil, performance.now() + 20 + Math.random() * 90);
+}
 
 function decodedCount(): number {
   let n = 0;
@@ -463,15 +505,122 @@ function dismissNoSignal() {
   noSignal.dismiss(performance.now());
 }
 
-/** By the time a transfer ends the camera, worker pool and stats timer are all
- *  torn down and `done` is latched, so a reload is the honest way back to a
- *  live receiver — and it drops the recovered bytes from memory on the way. */
+/** Camera track still delivering, decode pool still warm. After a successful
+ *  receive we keep both alive so the next file does not pay a second
+ *  getUserMedia / WASM init — on phones that second start often looks like
+ *  a live preview with tiny cap/s and 0 dec/s. */
+function cameraLive(): boolean {
+  const track = stream?.getVideoTracks()[0];
+  return !!track && track.readyState === "live" && pool.isReady && pool.size > 0;
+}
+
+function setDiagnosticsLive(live: boolean): void {
+  const label = diagnosticsEl?.querySelector("summary");
+  if (label) label.textContent = live ? msg.receive.diagnosticsSummary : msg.receive.transferSummary;
+}
+
+function forgetResult(): void {
+  for (const url of resultUrls) URL.revokeObjectURL(url);
+  resultUrls.length = 0;
+  result.replaceChildren();
+}
+
+/** Drop recovered bytes and fountain state, resume the still-running camera.
+ *  Reload is the fallback when the track already died. */
+async function armNextReceive(): Promise<void> {
+  if (!cameraLive()) {
+    window.location.reload();
+    return;
+  }
+  // In-flight decodes from the file we just finished must drain first —
+  // flipping done=false while they are still in the pool would open a new
+  // fountain on stale frames of the previous stream.
+  const drainStart = performance.now();
+  while (pool.busyCount > 0 && performance.now() - drainStart < 2000) {
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  if (!cameraLive()) {
+    window.location.reload();
+    return;
+  }
+  done = false;
+  decoder = null;
+  streamKey = "";
+  reportSessionId = 0;
+  startTs = 0;
+  minSeq = Infinity;
+  maxSeq = -1;
+  captureTimes.length = 0;
+  decodeTimes.length = 0;
+  tryTimes.length = 0;
+  timeline.length = 0;
+  totalCaptures = 0;
+  totalDecodes = 0;
+  fullScans = 0;
+  peakRegions = 0;
+  capturesDropped = 0;
+  cropsSubmitted = 0;
+  trackedDecodes = 0;
+  trackedAttempts = 0;
+  zeroRegionMs = 0;
+  degradedMs = 0;
+  regions.length = 0;
+  expectedRegions = 0;
+  expectedRegionsAt = 0;
+  nextFullScanAt = 0;
+  holdUntil = 0;
+  stallSolved = 0;
+  stallFramesNew = 0;
+  peelStall = 0;
+  cropRotate = 0;
+  blankStreak = 0;
+  verdictShown = null;
+  decoderFailShown = false;
+  lastDecoderError = "";
+  forgetResult();
+  bar.classList.remove("error");
+  bar.style.width = "0%";
+  progressEl.style.display = "none";
+  progressEl.setAttribute("aria-valuenow", "0");
+  progressStatus.style.display = "none";
+  progressLabel.textContent = msg.receive.progressZero;
+  etaLabel.textContent = msg.receive.estimatingTime;
+  preview.style.display = "";
+  settingsEl.style.display = "";
+  metricsEl.style.display = "grid";
+  if (diagnosticsEl) diagnosticsEl.style.display = "block";
+  setDiagnosticsLive(true);
+  metric("m-k").textContent = "—";
+  metric("m-missing").textContent = "—";
+  metric("m-frames").textContent = "—";
+  metric("m-rate").textContent = "—";
+  metric("m-time").textContent = "—";
+  metric("m-block").textContent = "—";
+  metric("m-payload").textContent = "—";
+  const settings = stream!.getVideoTracks()[0]?.getSettings();
+  setStatus(
+    msg.receive.cameraSearching(`${settings?.width}×${settings?.height}@${settings?.frameRate}`),
+  );
+  reportCameraSettings();
+  noSignal.cameraStarted(performance.now());
+  cameraStartedTs = performance.now();
+  pool.resize(Number(cfgWorkers.value));
+  void video.play().catch(() => undefined);
+  if (!statsTimer) statsTimer = setInterval(updateStats, 500);
+  captureGen++;
+  scheduleFrame(captureGen);
+}
+
 function restartButton(label: string): HTMLButtonElement {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "secondary-button";
   button.textContent = label;
-  button.addEventListener("click", () => window.location.reload());
+  button.addEventListener("click", () => {
+    button.disabled = true;
+    if (cameraLive()) void armNextReceive();
+    else window.location.reload();
+  });
   return button;
 }
 
@@ -731,7 +880,7 @@ async function applyCameraExtras() {
  * element, not the stream, so the capture loop survives the swap).
  */
 async function switchCamera() {
-  if (done || !stream) return;
+  if (!stream) return;
   cfgCamera.disabled = true; // one switch at a time
   const previous = stream.getVideoTracks()[0]?.getSettings().deviceId;
   for (const track of stream.getTracks()) track.stop();
@@ -771,8 +920,7 @@ async function switchCamera() {
 }
 
 async function applyReceiveSettings() {
-  // finish() has already torn the pool down — don't resurrect it.
-  if (done) return;
+  if (!stream || !pool.isReady) return;
   pool.resize(Number(cfgWorkers.value));
   const track = stream?.getVideoTracks()[0];
   if (!track) return;
@@ -888,7 +1036,10 @@ function captureFrame() {
     capturesDropped++;
     return;
   }
+  // After the worker is free — holding during busy-wait burns the delay
+  // while WASM is still running and the next submit stays on the same cadence.
   const now = performance.now();
+  if (now < holdUntil) return;
 
   for (let i = regions.length - 1; i >= 0; i--) {
     if (now - regions[i]!.seen > REGION_TTL_MS) regions.splice(i, 1);
@@ -903,28 +1054,24 @@ function captureFrame() {
     expectedRegions = live;
     expectedRegionsAt = now;
   }
-  const scanInterval =
-    live === 0
-      ? ACQUISITION_SCAN_MS
-      : live < expectedRegions
-        ? FULL_SCAN_DEGRADED_MS
-        : FULL_SCAN_INTERVAL_MS;
   // A due full scan takes priority over crops, deliberately. The crop loop
   // below fills every free worker slot each frame, so any "only scan when a
   // slot is spare" politeness starves the rescan that reacquires a missing
-  // code — tried, and it measurably worsened multi-code lock-on. Scans are
-  // rare (1.5 s healthy, 250 ms degraded, 100 ms cold); crops keep the slot
-  // next frame — including crops of probationary sighting regions, which now
-  // run between cold scans instead of being crowded out by them.
-  const fullScanDue = now - lastFullScan > scanInterval;
+  // code. Interval is jittered (see nextFullScanAt) so a 60 Hz sender cannot
+  // lock the sample phase to a residue class of the 2k carousel.
+  const fullScanDue = now >= nextFullScanAt;
 
   if (BITMAP_CAPTURE) {
     if (fullScanDue) {
-      lastFullScan = now;
+      scheduleNextFullScan(now, live);
       fullScans++;
       captureTimes.push(now);
       totalCaptures++;
       submitBitmap(createImageBitmap(video), { ox: 0, oy: 0, full: true });
+      return;
+    }
+    if (peelStalled()) {
+      cropRotate++;
       return;
     }
     // The bitmaps resolve async, so "stop when the pool refuses" becomes
@@ -967,7 +1114,7 @@ function captureFrame() {
   const ctx = grab.getContext("2d", { willReadFrequently: true })!;
   ctx.drawImage(video, 0, 0, vw, vh);
   if (fullScanDue) {
-    lastFullScan = now;
+    scheduleNextFullScan(now, live);
     fullScans++;
     const img = ctx.getImageData(0, 0, vw, vh);
     if (frameLooksBlank(img.data)) {
@@ -982,6 +1129,10 @@ function captureFrame() {
       { id: frameId++, buf: img.data.buffer, w: vw, h: vh, ox: 0, oy: 0, full: true },
       [img.data.buffer],
     );
+    return;
+  }
+  if (peelStalled()) {
+    cropRotate++;
     return;
   }
   // One crop per known code, rotated so a short worker pool doesn't starve
@@ -1043,12 +1194,12 @@ function linkProven() {
 }
 
 function onDecoded(bytes: Uint8Array, box?: SymbolBox, info?: SymbolInfo) {
+  if (done) return;
   decodeTimes.push(performance.now());
   totalDecodes++;
   if (info?.tracked) trackedDecodes++;
   if (box) noteRegion(box, performance.now(), true, info);
   const parsed = parseFrame(bytes);
-  if (done) return;
   if (!parsed) {
     // A Decimen frame we cannot use is a different problem from no frames at
     // all, and the no-signal advice ("hold steadier, more light") is actively
@@ -1077,11 +1228,16 @@ function onDecoded(bytes: Uint8Array, box?: SymbolBox, info?: SymbolInfo) {
     streamKey = identity;
     reportSessionId = header.sessionId;
     startTs = performance.now();
+    stallSolved = 0;
+    stallFramesNew = 0;
+    holdUntil = 0;
+    peelStall = 0;
     progressEl.style.display = "block";
     progressStatus.style.display = "flex";
   }
   minSeq = Math.min(minSeq, header.seq);
   maxSeq = Math.max(maxSeq, header.seq);
+  const solvedBefore = decoder.solvedCount;
   decoder.addFrame(header.seq, block);
   updateProgressEstimate();
 
@@ -1090,6 +1246,19 @@ function onDecoded(bytes: Uint8Array, box?: SymbolBox, info?: SymbolInfo) {
     const seconds = (performance.now() - startTs) / 1000;
     const ok = fnv1a(payload) === header.payloadFnv;
     void finish(payload, ok, seconds);
+    return;
+  }
+  // 7 cap/s vs a 60 fps sender samples about every 8th displayed frame — the
+  // whole carousel at k=4. Hopping only after +6 unique frames in 500 ms
+  // never fired. Two useless seqs is enough to slip one camera tick.
+  if (decoder.solvedCount === solvedBefore) {
+    peelStall++;
+    if (peelStall >= 2) {
+      phaseHop();
+      peelStall = 0;
+    }
+  } else {
+    peelStall = 0;
   }
 }
 
@@ -1151,7 +1320,7 @@ async function finish(container: Uint8Array, hashOk: boolean, seconds: number) {
   captureGen++;
   // npm run diagnostics: one JSON report per completed run, POSTed to the dev
   // server so it lands in the terminal (build/diagnostics-endpoint.ts). Sent
-  // before teardown, while the camera settings and pool size are still real.
+  // before capture pauses, while the camera settings and pool size are still real.
   // The DEV guard is load-bearing: import.meta.env.DEV is statically false in
   // every build, so this whole branch is compiled out of the static site, the
   // GitHub Pages deploy, and the standalone files.
@@ -1231,21 +1400,15 @@ async function finish(container: Uint8Array, hashOk: boolean, seconds: number) {
       }),
     }).catch(() => undefined);
   }
-  // Tear the whole capture pipeline down: the camera, the stats timer, and the
-  // decode pool. Each worker holds its own ~940 KB zxing WASM instance, which
-  // is worth reclaiming on a phone the moment the last frame is in.
-  stream?.getTracks().forEach((t) => t.stop());
+  // Pause capture so the looping sender does not immediately start a second
+  // copy of the same file. Keep the camera and decode pool — a second
+  // getUserMedia / WASM init on phones often yields a live preview that
+  // never decodes (tiny cap/s, 0 dec/s). "Receive another file" re-arms
+  // this pipeline instead of reloading.
   clearInterval(statsTimer);
   statsTimer = undefined;
-  pool.resize(0);
-  preview.style.display = "none";
-  // The transfer is over and the pipeline is gone: settings for a camera that
-  // no longer exists would just be a dead control panel.
-  settingsEl.style.display = "none";
-  // The metrics stay, frozen at their last tick — but "Live" is no longer
-  // true, so the panel relabels itself as the record of the run it now is.
-  const diagnosticsLabel = diagnosticsEl?.querySelector("summary");
-  if (diagnosticsLabel) diagnosticsLabel.textContent = msg.receive.transferSummary;
+  settingsEl.style.display = "";
+  setDiagnosticsLive(false);
   bar.style.width = "100%";
   progressEl.setAttribute("aria-valuenow", "100");
   etaLabel.textContent = msg.receive.etaTotal(formatDurationL(seconds));
@@ -1285,6 +1448,7 @@ async function finish(container: Uint8Array, hashOk: boolean, seconds: number) {
     heading.className = "done";
     heading.textContent = msg.receive.transferComplete;
     const url = URL.createObjectURL(new Blob([file.bytes as BlobPart], { type: file.type }));
+    resultUrls.push(url);
     const download = document.createElement("a");
     download.className = "download";
     download.href = url;
@@ -1314,9 +1478,7 @@ async function finish(container: Uint8Array, hashOk: boolean, seconds: number) {
     const support = supportLink();
     if (support) result.append(support);
   } catch (error) {
-    // Everything is already torn down by this point, so the only way back to a
-    // live receiver is a reload. Offer it: a failed checksum used to leave the
-    // page dead with nothing but an error string on it.
+    // Pipeline is paused, not torn down — Try again re-arms the same camera.
     bar.classList.add("error");
     etaLabel.textContent = msg.receive.transferFailedShort;
     showError(localizeError(error));
@@ -1576,6 +1738,14 @@ function updateStats() {
   }
   if (noSignal.tick(now)) showNoSignalHint();
   if (!decoder) return;
+  // Unique seqs arriving without new solved blocks means the camera is
+  // sampling one residue class of the systematic carousel — drop a random
+  // handful of ticks so the next capture lands on a different slot.
+  if (!decoder.isComplete && decoder.solvedCount === stallSolved && decoder.framesNew > stallFramesNew) {
+    phaseHop();
+  }
+  stallSolved = decoder.solvedCount;
+  stallFramesNew = decoder.framesNew;
   const elapsed = (now - startTs) / 1000;
   // Diagnostics accounting, gated on a running transfer so camera-pointing
   // time doesn't pollute it. 500 ms granularity matches this timer. Decode-
@@ -1602,7 +1772,8 @@ function updateStats() {
   metric("m-rate").textContent = msg.units.kbPerSecond(fmtNumber(goodputKbs(elapsed), 1, 1));
   metric("m-time").textContent = msg.units.secondsValue(fmtInt(elapsed));
   metric("m-frames").textContent = `${decoder.framesNew}/${decoder.framesDup}`;
-  metric("m-k").textContent = String(decoder.k);
+  metric("m-k").textContent = `${decoder.solvedCount}/${decoder.k}`;
+  metric("m-missing").textContent = formatIndexRanges(decoder.unsolvedBlocks()) || "0";
   metric("m-block").textContent = `${fmtInt(decoder.blockLen)} ${msg.units.bytes}`;
   metric("m-payload").textContent = `${fmtInt(Math.round(decoder.totalLen / 1024))} ${msg.units.kilobytes}`;
 }

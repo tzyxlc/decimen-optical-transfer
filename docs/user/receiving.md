@@ -10,11 +10,11 @@ Progress counts **frames collected**, not blocks solved — fountain decoding ba
 
 - The file is verified against its SHA-256 before anything is offered.
 - Images, video, and audio preview inline — video plays in the page (never autoplays), other files just get the **Save** link. Turn off **Show received files automatically** and the preview waits behind a **Show** button instead; see [Privacy](privacy.md).
-- **Receive another file** reloads into a fresh receiver.
+- **Receive another file** keeps the camera and decoder running and arms a fresh receive. The recovered bytes leave memory when the next file starts.
 - **Clear Decimen cache** scrubs the received bytes from browser storage, and appears only when something is actually cached — see [Privacy](privacy.md).
 - Text snippets appear with a **Copy** button and exist only until the tab closes.
 
-**Live diagnostics** (capture/decode fps, goodput, frames, K) is collapsible during the transfer and becomes the **Transfer summary** when it ends.
+- **Live diagnostics** (capture/decode fps, goodput, frames, solved/K, missing source blocks) is collapsible during the transfer and becomes the **Transfer summary** when it ends. Missing blocks are fountain source-block indices, not QR sequence numbers.
 
 ## Receive settings
 

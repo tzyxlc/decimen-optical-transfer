@@ -726,6 +726,7 @@ async function startStream(revealStage = false) {
   const interval = 1000 / txFps;
   const subInterval = interval / gridCodes;
   let cellCursor = 0;
+  let gridTicks = 0;
   let nextAt = performance.now();
   let lastTickAt = performance.now();
   const tick = (now: number) => {
@@ -786,6 +787,11 @@ async function startStream(revealStage = false) {
       ctx.drawImage(staging, cx, cy, cell, cell, cx * scale, cy * scale, cell * scale, cell * scale);
       cellCursor = (cellCursor + 1) % gridCodes;
       nextAt += subInterval;
+      // Walk the display phase so a camera whose capture period shares
+      // factors with the 2k carousel (7 cap/s vs 60 fps ≈ every 8th frame)
+      // cannot stay on one residue. One extra 60 Hz tick every 7 full-grid
+      // refreshes is coprime to 2, 4, 6, 8, 10.
+      if (cellCursor === 0 && ++gridTicks % 7 === 0) nextAt += 1000 / 60;
     }
   };
   requestAnimationFrame(tick);

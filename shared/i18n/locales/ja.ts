@@ -170,6 +170,7 @@ export const messages: Messages = {
     metricElapsed: "経過時間",
     metricFrames: "フレーム 新規/重複",
     metricBlocks: "ブロック K",
+    metricMissing: "未受信ブロック",
     metricBlockLen: "ブロック長",
     metricTransfer: "転送",
     settingsSummary: "受信設定",

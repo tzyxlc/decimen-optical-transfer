@@ -168,6 +168,7 @@ export const messages: Messages = {
     metricElapsed: "الوقت المنقضي",
     metricFrames: "الإطارات (جديدة/مكررة)",
     metricBlocks: "الكتل K",
+    metricMissing: "كتل ناقصة",
     metricBlockLen: "طول الكتلة",
     metricTransfer: "النقل",
     settingsSummary: "إعدادات الاستقبال",

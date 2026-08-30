@@ -174,6 +174,7 @@ export const messages: Messages = {
     metricElapsed: "trascorso",
     metricFrames: "frame nuovi/dup",
     metricBlocks: "blocchi K",
+    metricMissing: "blocchi mancanti",
     metricBlockLen: "lung. blocco",
     metricTransfer: "trasferimento",
     settingsSummary: "Impostazioni di ricezione",

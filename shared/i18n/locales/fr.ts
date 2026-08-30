@@ -179,6 +179,7 @@ export const messages: Messages = {
     metricElapsed: "écoulé",
     metricFrames: "trames nouv/dup",
     metricBlocks: "blocs K",
+    metricMissing: "blocs manquants",
     metricBlockLen: "long. bloc",
     metricTransfer: "transfert",
     settingsSummary: "Réglages de réception",

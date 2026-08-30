@@ -164,6 +164,7 @@ export const messages: Messages = {
     metricElapsed: "已用时间",
     metricFrames: "帧 新/重复",
     metricBlocks: "块 K",
+    metricMissing: "缺失块",
     metricBlockLen: "块长度",
     metricTransfer: "传输",
     settingsSummary: "接收设置",

@@ -169,6 +169,7 @@ export const messages: Messages = {
     metricElapsed: "경과 시간",
     metricFrames: "프레임 신규/중복",
     metricBlocks: "블록 K",
+    metricMissing: "없는 블록",
     metricBlockLen: "블록 길이",
     metricTransfer: "전송",
     settingsSummary: "수신 설정",

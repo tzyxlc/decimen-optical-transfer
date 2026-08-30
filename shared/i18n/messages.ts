@@ -192,6 +192,7 @@ export interface Messages {
     metricElapsed: string;
     metricFrames: string; // "frames new/dup"
     metricBlocks: string; // "blocks K"
+    metricMissing: string; // unsolved source-block indices
     metricBlockLen: string;
     metricTransfer: string;
     settingsSummary: string; // "Receive settings"

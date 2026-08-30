@@ -22,6 +22,7 @@ import { emitAs } from "./build/emit-as";
 import { rootPwaHead } from "./build/root-pwa-head";
 import { licenseBanner } from "./build/license-banner";
 import { diagnosticsEndpoint } from "./build/diagnostics-endpoint";
+import { certPemEndpoint } from "./build/cert-pem-endpoint";
 import { i18nPages } from "./build/i18n-pages";
 
 // Where the site is published, used only to make the social-card URLs absolute
@@ -211,6 +212,7 @@ export default defineConfig(({ mode }) => {
       i18nPages({ siteUrl: SITE_URL, tokens: TOKENS, manifest: MANIFEST_BASE }),
       licenseBanner(pkg.version),
       diagnosticsEndpoint(pkg.version),
+      certPemEndpoint(),
     ],
     // IIFE workers: Safari 14 has no module workers (`type: "module"` throws).
     worker: { format: "iife" },
@@ -225,6 +227,10 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    // Three HTML pages, not an SPA. Without this, Vite's history fallback
+    // serves index.html for unknown paths — including /__cert.pem, which is
+    // how a certificate download became a .pem file full of HTML.
+    appType: "mpa",
     // host: true on both so a phone on the LAN can reach either the dev server
     // or the built bundle that `npm run serve` previews.
     server: { host: true },

@@ -20,15 +20,14 @@ export const messages: Messages = {
   },
 
   home: {
-    title: "Decimen Optical Transfer — نقل الملفات بالضوء",
+    title: "D",
     metaDescription:
-      "أرسل ملفًا أو نصًا بين جهازين دون أي شيء سوى شاشة وكاميرا. رموز QR متحركة بترميز النافورة، من دون أي مسار شبكي بينهما.",
-    ogDescription:
-      "رموز QR متحركة بترميز النافورة، من الشاشة إلى الكاميرا. بلا حساب ولا اقتران ولا مسار شبكي بين الجهازين. سرعة مستمرة تبلغ %TOP_SPEED%، وفق قياسات موثقة.",
-    ogImageAlt: "هاتف في منتصف عملية النقل يقرأ بث رموز QR متحركة من شاشة أخرى.",
-    heroTitleHtml: "انقل الملفات<br />بالضوء.",
+      "صفحات محلية.",
+    ogDescription: "%TOP_SPEED%",
+    ogImageAlt: "Preview.",
+    heroTitleHtml: "D",
     heroCopy:
-      "أرسل ملفًا أو مقطعًا نصيًا من شاشة إلى كاميرا جهاز آخر. بلا حساب ولا اقتران ولا تخزين سحابي ولا مسار شبكي بين الجهازين.",
+      "اختر جهة.",
     chooseSideAriaLabel: "اختر طرفًا",
     cardSendKicker: "هذه الشاشة تبثّ",
     cardSendTitle: "إرسال ملف أو نص",
@@ -39,24 +38,23 @@ export const messages: Messages = {
     cardReceiveTitle: "وجِّه واستقبِل",
     cardReceiveBody: "وجِّه الكاميرا نحو شاشة المرسِل لاستقبال الملف.",
     cardReceiveAction: "استقبال",
-    shareSite: "مشاركة Decimen",
+    shareSite: "مشاركة",
     certDownload: "تنزيل شهادة HTTPS",
     certHint:
       "يحتاجها الآيفون للكاميرا. ثبّت الملف الشخصي ثم فعّل الثقة الكاملة من الإعدادات → عام → حول → إعدادات ثقة الشهادات.",
     supportTitle: "مجاني ومفتوح المصدر وبلا إعلانات",
     supportBodyHtml:
-      'إذا جعل Decimen يومك أسهل، يمكنك أن <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">تشتري لي فنجان قهوة</a>.',
+      'إذا جعل يومك أسهل، يمكنك أن <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">تشتري لي فنجان قهوة</a>.',
     shareDialogTitle: "مشاركة هذا التطبيق",
     shareDialogHint: "امسح هذا الرمز بكاميرا جهاز آخر، أو أرسل إليه الرابط.",
     siteLinkAriaLabel: "رابط الموقع",
-    privacyNote:
-      "لا يلزم أي مسار شبكي بين الجهازين؛ فالبايتات تنتقل على هيئة ضوء. الملفات غير مشفَّرة، لذا يمكن لأي كاميرا موجَّهة إلى شاشة الإرسال قراءة كل ما يظهر عليها.",
+    privacyNote: "",
   },
 
   send: {
-    docTitle: "Decimen Optical Transfer — الإرسال",
-    eyebrow: "الشاشة ← الكاميرا",
-    introCopy: "لا يغادر جهازَك أي شيء حتى تمسح الرمز بجهاز مستقبِل.",
+    docTitle: "الإرسال",
+    eyebrow: "",
+    introCopy: "",
     modeAriaLabel: "ما الذي تريد إرساله",
     modeFile: "ملف",
     modeSnippet: "مقتطف نصي",
@@ -92,7 +90,7 @@ export const messages: Messages = {
     specQr: "QR",
     specSending: "قيد الإرسال",
     specCompression: "الضغط",
-    specFountainBlocks: "كتل النافورة",
+    specFountainBlocks: "blocks",
     statusChooseFile: "اختر ملفًا للبدء",
     statusPasteText: "الصق أو اكتب نصًا للبدء",
     statusChooseDemo: "اختر حمولة تجريبية للبدء",
@@ -102,7 +100,7 @@ export const messages: Messages = {
     shareDialogTitle: "مشاركة المستقبِل",
     shareDialogHint: "امسح هذا الرمز بكاميرا الجهاز الآخر، أو أرسل إليه الرابط.",
     receiverLinkAriaLabel: "رابط المستقبِل",
-    shareTitleData: "Decimen Optical Transfer — المستقبِل",
+    shareTitleData: "المستقبِل",
     loadingDemo: (name) => `جارٍ تحميل ${name}…`,
     demoLoadFailed: (name, status) => `تعذّر تحميل ${name} (${status})`,
     preparingFile: (name) => `جارٍ تحضير ${name}…`,
@@ -143,8 +141,8 @@ export const messages: Messages = {
   },
 
   receive: {
-    docTitle: "Decimen Optical Transfer — الاستقبال",
-    eyebrow: "الكاميرا ← جهازك",
+    docTitle: "الاستقبال",
+    eyebrow: "",
     title: "استقبال",
     statusReady: "جاهز لمسح بث ملف أو نص",
     startCamera: "تشغيل الكاميرا",
@@ -221,7 +219,7 @@ export const messages: Messages = {
     mediaVideo: "الفيديو",
     mediaAudio: "المقطع الصوتي",
     showMedia: (noun) => `عرض ${noun}`,
-    clearCache: "مسح ذاكرة Decimen المؤقتة",
+    clearCache: "مسح ذاكرة المؤقتة",
     cacheCleared: "تم مسح الذاكرة المؤقتة",
     clearCacheFailed: "فشل المسح — حاول مرة أخرى",
     receivedPreviewAlt: (name) => `معاينة الملف المستلَم: ${name}`,
@@ -252,7 +250,7 @@ export const messages: Messages = {
     gzipIncomplete: "حمولة gzip المستعادة غير مكتملة.",
     gzipLengthMismatch: "طول حمولة gzip لا يطابق ترويسة الملف.",
     decompressedLengthMismatch: "طول الملف بعد فك الضغط لا يطابق ترويسته.",
-    streamChecksumMismatch: "المجموع الاختباري للبث الضوئي غير مطابق.",
+    streamChecksumMismatch: "Checksum mismatch.",
     sha256Failed: "أخفق الملف المستعاد في اجتياز التحقق من SHA-256.",
     snippetEmpty: "الصق أو اكتب نصًا قبل الإرسال.",
     snippetOverLimit: (limit) => `تقتصر المقتطفات النصية على ${limit}.`,
@@ -262,11 +260,11 @@ export const messages: Messages = {
 
   verdicts: {
     olderSender: (version) =>
-      `تلك الشاشة ترسل بتنسيق Decimen أقدم (v${version}). حدِّث الجهاز المرسِل.`,
+      `تلك الشاشة ترسل بتنسيق أقدم (v${version}). حدِّث الجهاز المرسِل.`,
     newerSender: (version) =>
-      `تلك الشاشة ترسل بتنسيق Decimen أحدث (v${version}). حدِّث هذا التطبيق لاستقباله.`,
+      `تلك الشاشة ترسل بتنسيق أحدث (v${version}). حدِّث هذا التطبيق لاستقباله.`,
     unsupportedFlags:
-      "يستخدم هذا البث ميزة من Decimen لا يستطيع هذا الإصدار قراءتها. حدِّث هذا التطبيق لاستقباله.",
+      "يستخدم هذا البث ميزة من لا يستطيع هذا الإصدار قراءتها. حدِّث هذا التطبيق لاستقباله.",
   },
 
   units: {
@@ -284,7 +282,7 @@ export const messages: Messages = {
     languageSelectLabel: "اللغة",
     unreviewedNote: "هذه الترجمة مُعدَّة آليًا ولم يراجعها متحدث أصلي بالعربية بعد.",
     unreviewedLinkText: "الإبلاغ عن مشكلة في الترجمة",
-    switchOffer: "يتوفر Decimen باللغة العربية.",
+    switchOffer: "يتوفر باللغة العربية.",
     switchAction: "العرض بالعربية",
   },
 };

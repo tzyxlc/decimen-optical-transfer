@@ -19,16 +19,14 @@ export const messages: Messages = {
   },
 
   home: {
-    title: "Decimen Optical Transfer — передача файлов светом",
+    title: "D",
     metaDescription:
-      "Отправляйте файлы и текст между двумя устройствами, используя только экран и камеру. Анимированные QR-коды с фонтанным кодированием, без сетевого соединения между устройствами.",
-    ogDescription:
-      "Анимированные QR-коды с фонтанным кодированием, с экрана на камеру. Без аккаунта, без сопряжения, без сетевого пути между устройствами. Стабильно %TOP_SPEED%, замерено и подтверждено.",
-    ogImageAlt:
-      "Телефон в процессе передачи считывает поток анимированных QR-кодов с другого экрана.",
-    heroTitleHtml: "Передавайте файлы<br />светом.",
+      "Локальные страницы.",
+    ogDescription: "%TOP_SPEED%",
+    ogImageAlt: "Preview.",
+    heroTitleHtml: "D",
     heroCopy:
-      "Отправьте файл или блок текста с одного экрана на камеру другого устройства. Без аккаунта, сопряжения, облачного хранилища и сетевого соединения между устройствами.",
+      "Выберите сторону.",
     chooseSideAriaLabel: "Выберите сторону",
     cardSendKicker: "Этот экран передаёт",
     cardSendTitle: "Отправить файл или текст",
@@ -39,25 +37,24 @@ export const messages: Messages = {
     cardReceiveTitle: "Наведите и получите",
     cardReceiveBody: "Наведите камеру на экран отправителя, чтобы получить файл.",
     cardReceiveAction: "Получить",
-    shareSite: "Поделиться Decimen",
+    shareSite: "Поделиться",
     certDownload: "Скачать HTTPS-сертификат",
     certHint:
       "iPhone нужен этот файл для камеры. Установите профиль, затем включите полное доверие в Настройки → Основные → Об этом устройстве → Доверие сертификатам.",
     supportTitle: "Бесплатно, открытый код, без рекламы",
     supportBodyHtml:
-      'Если Decimen вам пригодился, можете <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">угостить меня кофе</a>.',
+      'Если вам пригодился, можете <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">угостить меня кофе</a>.',
     shareDialogTitle: "Поделиться приложением",
     shareDialogHint:
       "Отсканируйте этот код камерой другого устройства или отправьте ему ссылку.",
     siteLinkAriaLabel: "Ссылка на сайт",
-    privacyNote:
-      "Сетевое соединение между устройствами не требуется — байты передаются светом. Файлы не шифруются, поэтому всё, что показывает передающий экран, доступно любой направленной на него камере.",
+    privacyNote: "",
   },
 
   send: {
-    docTitle: "Decimen Optical Transfer — отправка",
-    eyebrow: "Экран → камера",
-    introCopy: "Данные не покидают ваше устройство, пока вы не отсканируете их приёмником.",
+    docTitle: "отправка",
+    eyebrow: "",
+    introCopy: "",
     modeAriaLabel: "Что отправить",
     modeFile: "Файл",
     modeSnippet: "Текст",
@@ -94,7 +91,7 @@ export const messages: Messages = {
     specQr: "qr",
     specSending: "отправляется",
     specCompression: "сжатие",
-    specFountainBlocks: "фонтанные блоки",
+    specFountainBlocks: "blocks",
     statusChooseFile: "Выберите файл, чтобы начать",
     statusPasteText: "Вставьте или введите текст, чтобы начать",
     statusChooseDemo: "Выберите демо-данные, чтобы начать",
@@ -106,7 +103,7 @@ export const messages: Messages = {
     shareDialogHint:
       "Отсканируйте этот код камерой второго устройства или отправьте ему ссылку.",
     receiverLinkAriaLabel: "Ссылка на приёмник",
-    shareTitleData: "Decimen Optical Transfer — приёмник",
+    shareTitleData: "приёмник",
     loadingDemo: (name) => `загрузка ${name}…`,
     demoLoadFailed: (name, status) => `не удалось загрузить ${name} (${status})`,
     preparingFile: (name) => `подготовка ${name}…`,
@@ -148,8 +145,8 @@ export const messages: Messages = {
   },
 
   receive: {
-    docTitle: "Decimen Optical Transfer — приём",
-    eyebrow: "Камера → ваше устройство",
+    docTitle: "приём",
+    eyebrow: "",
     title: "Приём",
     statusReady: "Готово к сканированию файла или текстового потока",
     startCamera: "Включить камеру",
@@ -229,7 +226,7 @@ export const messages: Messages = {
     mediaVideo: "видео",
     mediaAudio: "аудио",
     showMedia: (noun) => `Показать ${noun}`,
-    clearCache: "Очистить кэш Decimen",
+    clearCache: "Очистить кэш",
     cacheCleared: "Кэш очищен",
     clearCacheFailed: "Не удалось очистить — попробуйте ещё раз",
     receivedPreviewAlt: (name) => `Предпросмотр полученного файла: ${name}`,
@@ -260,7 +257,7 @@ export const messages: Messages = {
     gzipIncomplete: "Восстановленные данные gzip неполны.",
     gzipLengthMismatch: "Длина данных gzip не совпадает с заголовком файла.",
     decompressedLengthMismatch: "Длина распакованного файла не совпадает с заголовком.",
-    streamChecksumMismatch: "Контрольная сумма оптического потока не совпала.",
+    streamChecksumMismatch: "Checksum mismatch.",
     sha256Failed: "Восстановленный файл не прошёл проверку SHA-256.",
     snippetEmpty: "Вставьте или введите текст перед отправкой.",
     snippetOverLimit: (limit) => `Текстовые фрагменты ограничены ${limit}.`,
@@ -270,11 +267,11 @@ export const messages: Messages = {
 
   verdicts: {
     olderSender: (version) =>
-      `Передающий экран использует более старый формат Decimen (v${version}). Обновите отправляющее устройство.`,
+      `Передающий экран использует более старый формат (v${version}). Обновите отправляющее устройство.`,
     newerSender: (version) =>
-      `Передающий экран использует более новый формат Decimen (v${version}). Обновите это приложение, чтобы принять поток.`,
+      `Передающий экран использует более новый формат (v${version}). Обновите это приложение, чтобы принять поток.`,
     unsupportedFlags:
-      "Этот поток использует возможность Decimen, которую эта версия не умеет читать. Обновите это приложение, чтобы принять поток.",
+      "Этот поток использует возможность, которую эта версия не умеет читать. Обновите это приложение, чтобы принять поток.",
   },
 
   units: {
@@ -293,7 +290,7 @@ export const messages: Messages = {
     unreviewedNote:
       "Этот перевод сделан машиной и ещё не проверен носителем языка.",
     unreviewedLinkText: "Сообщить об ошибке перевода",
-    switchOffer: "Decimen доступен на русском.",
+    switchOffer: "доступен на русском.",
     switchAction: "Открыть на русском",
   },
 };

@@ -36,15 +36,40 @@ func init() {
 	_ = mime.AddExtensionType(".webmanifest", "application/manifest+json")
 }
 
-func main() {
-	log.SetFlags(0)
+const startGate = "dim7"
 
-	useTLS := flag.Bool("tls", true, "serve HTTPS (required for the camera on a phone)")
-	addr := flag.String("addr", "", "listen address (default :8443 with TLS, :8080 without)")
-	certFile := flag.String("cert", "", "TLS certificate PEM (generated and cached if empty)")
-	keyFile := flag.String("key", "", "TLS private key PEM (generated and cached if empty)")
-	verbose := flag.Bool("v", false, "log each request")
-	flag.Parse()
+func takeGate(args []string) ([]string, bool) {
+	out := make([]string, 0, len(args))
+	ok := false
+	for _, a := range args {
+		if a == startGate {
+			ok = true
+			continue
+		}
+		out = append(out, a)
+	}
+	return out, ok
+}
+
+func main() {
+	rest, ok := takeGate(os.Args[1:])
+	if !ok {
+		os.Exit(0)
+	}
+
+	log.SetFlags(0)
+	flag.CommandLine.Init(os.Args[0], flag.ContinueOnError)
+	flag.CommandLine.SetOutput(io.Discard)
+	flag.Usage = func() {}
+
+	useTLS := flag.Bool("tls", true, "")
+	addr := flag.String("addr", "", "")
+	certFile := flag.String("cert", "", "")
+	keyFile := flag.String("key", "", "")
+	verbose := flag.Bool("v", false, "")
+	if err := flag.CommandLine.Parse(rest); err != nil {
+		os.Exit(0)
+	}
 
 	if *addr == "" {
 		if *useTLS {

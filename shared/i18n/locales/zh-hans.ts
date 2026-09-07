@@ -20,26 +20,23 @@ export const messages: Messages = {
   },
 
   home: {
-    title: "Decimen Optical Transfer — 用光传输文件",
-    metaDescription:
-      "只用一块屏幕和一个摄像头，就能在两台设备之间发送文件或文本。喷泉码动态二维码，中间没有任何网络链路。",
-    ogDescription:
-      "喷泉码动态二维码，屏幕对摄像头。无需账号、无需配对，两台设备之间没有任何网络链路。持续 %TOP_SPEED%，实测数据为证。",
-    ogImageAlt: "一部手机正在传输中，从另一块屏幕上读取动态二维码流。",
-    heroTitleHtml: "用光<br />传输文件。",
-    heroCopy:
-      "把文件或一段文本从一块屏幕发送到另一台设备的摄像头。无需账号、配对、云存储，设备之间也没有任何网络链路。",
+    title: "D",
+    metaDescription: "本地页面。",
+    ogDescription: "%TOP_SPEED%",
+    ogImageAlt: "预览。",
+    heroTitleHtml: "D",
+    heroCopy: "选一端。",
     chooseSideAriaLabel: "选择一端",
-    cardSendKicker: "这块屏幕负责发送",
-    cardSendTitle: "发送文件或文本",
+    cardSendKicker: "出",
+    cardSendTitle: "发送",
     cardSendBody:
       "任意文件，最大 %MAX_FILE_LABEL%；或粘贴一段文本，最长 %MAX_SNIPPET_LABEL%。有益时自动压缩，恢复后保留原文件名。",
     cardSendAction: "发送",
-    cardReceiveKicker: "这个摄像头负责接收",
-    cardReceiveTitle: "对准即收",
-    cardReceiveBody: "把摄像头对准发送方的屏幕，即可接收文件。",
+    cardReceiveKicker: "入",
+    cardReceiveTitle: "接收",
+    cardReceiveBody: "使用摄像头。",
     cardReceiveAction: "接收",
-    shareSite: "分享 Decimen",
+    shareSite: "分享",
     certDownload: "下载 HTTPS 证书",
     certHint:
       "iPhone 开摄像头需要先信任此证书。下载后到「设置 → 描述文件」安装，再在「设置 → 通用 → 关于本机 → 证书信任设置」中打开完全信任。",
@@ -49,21 +46,20 @@ export const messages: Messages = {
     shareDialogTitle: "分享这个应用",
     shareDialogHint: "用另一台设备的摄像头扫描此码，或把链接发过去。",
     siteLinkAriaLabel: "站点链接",
-    privacyNote:
-      "设备之间不需要任何网络链路，数据以光的形式传输。文件未经加密，发送屏幕上的内容，任何对准它的摄像头都能读取。",
+    privacyNote: "",
   },
 
   send: {
-    docTitle: "Decimen Optical Transfer — 发送",
-    eyebrow: "屏幕 → 摄像头",
-    introCopy: "在接收方扫描之前，任何数据都不会离开你的设备。",
+    docTitle: "发送",
+    eyebrow: "",
+    introCopy: "",
     modeAriaLabel: "发送内容",
     modeFile: "文件",
     modeSnippet: "文本片段",
-    titleFile: "发送文件",
-    titleSnippet: "发送文本",
+    titleFile: "发送",
+    titleSnippet: "文本",
     selectFile: "选择文件",
-    stopTransfer: "停止传输",
+    stopTransfer: "停止",
     anyFileUpTo: "任意文件 · 最大 %MAX_FILE_LABEL%",
     selectedFile: (name) => `已选文件：${name}`,
     demoPayload: "演示数据",
@@ -77,7 +73,7 @@ export const messages: Messages = {
     snippetLabelWithMax: "要发送的文本 · 最长 %MAX_SNIPPET_LABEL%",
     snippetPlaceholder: "粘贴或输入任何内容——网址、配置、大段文字……",
     startTextStream: "开始文本流",
-    settingsSummary: "传输设置",
+    settingsSummary: "设置",
     settingTxFps: "发送 fps",
     settingBytesPerFrame: "每帧字节数",
     settingEcc: "纠错级别",
@@ -92,7 +88,7 @@ export const messages: Messages = {
     specQr: "QR",
     specSending: "发送内容",
     specCompression: "压缩",
-    specFountainBlocks: "喷泉码块",
+    specFountainBlocks: "块",
     statusChooseFile: "请先选择文件",
     statusPasteText: "请先粘贴或输入文本",
     statusChooseDemo: "请先选择演示数据",
@@ -102,7 +98,7 @@ export const messages: Messages = {
     shareDialogTitle: "分享接收器",
     shareDialogHint: "用另一台设备的摄像头扫描此码，或把链接发过去。",
     receiverLinkAriaLabel: "接收器链接",
-    shareTitleData: "Decimen Optical Transfer — 接收器",
+    shareTitleData: "接收",
     loadingDemo: (name) => `正在加载 ${name}…`,
     demoLoadFailed: (name, status) => `无法加载 ${name}（${status}）`,
     preparingFile: (name) => `正在准备 ${name}…`,
@@ -112,7 +108,7 @@ export const messages: Messages = {
     capacityError: (size, blocks, frameBytes, maxBlocks, suggestion) =>
       `按每帧 ${frameBytes} 字节，${size} 需要拆成 ${blocks} 个块，` +
       `而一帧最多只能编号 ${maxBlocks} 个。请把“每帧字节数”提高到 ${suggestion} 或更大。`,
-    streaming: (name) => `正在传输 ${name} — `,
+    streaming: (name) => `${name} — `,
     shareReceiverLink: "分享接收器链接",
     stallWarning: (seconds) =>
       `数据流冻结了 ${seconds} 秒——此窗口曾被隐藏或置于后台。` +
@@ -123,8 +119,7 @@ export const messages: Messages = {
     gzipTo: (size) => `gzip → ${size}`,
     compressionNone: "无",
     exportSummary: "导出动画",
-    exportIntro:
-      "将此数据流保存为循环播放的动画文件。把它嵌入视频或网页——任何对准播放中循环的相机都能接收该文件。",
+    exportIntro: "保存为循环文件。",
     exportFormat: "格式",
     exportFormatZip: "PNG 序列(ZIP)",
     exportFps: "帧率",
@@ -140,18 +135,18 @@ export const messages: Messages = {
   },
 
   receive: {
-    docTitle: "Decimen Optical Transfer — 接收",
-    eyebrow: "摄像头 → 你的设备",
+    docTitle: "接收",
+    eyebrow: "",
     title: "接收",
-    statusReady: "准备扫描文件或文本流",
+    statusReady: "就绪",
     startCamera: "启动摄像头",
     starting: "正在启动…",
     noSignalQuestion: "没有反应？",
     progressZero: "0% · 0 帧",
     estimatingTime: "正在估算时间…",
-    progressAriaLabel: "传输恢复进度",
+    progressAriaLabel: "进度",
     tipsTitle: "故障排查提示",
-    tipDropFrameBytes: (bytes) => `在发送方打开“传输设置”，把每帧字节数降到 ${bytes}。`,
+    tipDropFrameBytes: (bytes) => `在发送方打开“设置”，把每帧字节数降到 ${bytes}。`,
     tipDropTxFps: (fps) => `还是不行？把发送方的发送 fps 也降到 ${fps}。`,
     tipFillView:
       "让二维码填满摄像头画面，并把手机靠在支撑物上——" +
@@ -166,8 +161,8 @@ export const messages: Messages = {
     metricBlocks: "块 K",
     metricMissing: "缺失块",
     metricBlockLen: "块长度",
-    metricTransfer: "传输",
-    settingsSummary: "接收设置",
+    metricTransfer: "载荷",
+    settingsSummary: "设置",
     settingCamera: "摄像头",
     cameraAuto: "自动",
     cameraN: (n) => `摄像头 ${n}`,
@@ -196,13 +191,11 @@ export const messages: Messages = {
     framesDecoding: (frames) => `${frames} 帧 · 解码中`,
     aboutEta: (duration, frames) => `约 ${duration} · ${frames} 帧`,
     etaTotal: (duration) => `共 ${duration}`,
-    transferFailedShort: "传输失败",
-    transferFailedDetail:
-      "这条数据流没有恢复出任何可用内容。请重启发送方，再扫一次——" +
-      "未完成的传输除了时间没有任何代价。",
+    transferFailedShort: "失败",
+    transferFailedDetail: "没有可用内容。请重试。",
     tryAgain: "重试",
-    transferSummary: "传输摘要",
-    transferComplete: "传输完成！",
+    transferSummary: "摘要",
+    transferComplete: "完成",
     recoveredFile: "100% · 文件已恢复",
     recoveredText: "100% · 文本已恢复",
     textReceived: "已收到文本",
@@ -217,7 +210,7 @@ export const messages: Messages = {
     mediaVideo: "视频",
     mediaAudio: "音频",
     showMedia: (noun) => `显示${noun}`,
-    clearCache: "清除 Decimen 缓存",
+    clearCache: "清除缓存",
     cacheCleared: "缓存已清除",
     clearCacheFailed: "清除失败——请重试",
     receivedPreviewAlt: (name) => `接收文件预览：${name}`,
@@ -248,7 +241,7 @@ export const messages: Messages = {
     gzipIncomplete: "恢复出的 gzip 数据不完整。",
     gzipLengthMismatch: "gzip 数据长度与其文件头不符。",
     decompressedLengthMismatch: "解压后的文件长度与其文件头不符。",
-    streamChecksumMismatch: "光学数据流校验和不匹配。",
+    streamChecksumMismatch: "数据流校验和不匹配。",
     sha256Failed: "恢复出的文件未通过 SHA-256 校验。",
     snippetEmpty: "发送前请先粘贴或输入文本。",
     snippetOverLimit: (limit) => `文本片段上限为 ${limit}。`,
@@ -258,10 +251,10 @@ export const messages: Messages = {
 
   verdicts: {
     olderSender: (version) =>
-      `对方屏幕正在以较旧的 Decimen 格式（v${version}）发送。请更新发送设备。`,
+      `对方屏幕正在以较旧的格式（v${version}）发送。请更新发送设备。`,
     newerSender: (version) =>
-      `对方屏幕正在以较新的 Decimen 格式（v${version}）发送。请更新本应用后再接收。`,
-    unsupportedFlags: "该数据流使用了此版本无法读取的 Decimen 功能。请更新本应用后再接收。",
+      `对方屏幕正在以较新的格式（v${version}）发送。请更新本应用后再接收。`,
+    unsupportedFlags: "该数据流使用了此版本无法读取的功能。请更新本应用后再接收。",
   },
 
   units: {
@@ -279,7 +272,7 @@ export const messages: Messages = {
     languageSelectLabel: "语言",
     unreviewedNote: "本翻译由机器起草，尚未经母语人士审校。",
     unreviewedLinkText: "报告翻译问题",
-    switchOffer: "Decimen 提供简体中文版。",
+    switchOffer: "提供简体中文版。",
     switchAction: "查看简体中文版",
   },
 };

@@ -13,7 +13,7 @@ const BRAND_INNER =
   '1236 -1030 2069 -2262 2249 -217 32 -411 36 -1772 36 l-1368 0 0 -1377z"/>' +
   '<path d="M4945 5906 c-300 -68 -532 -287 -611 -577 -25 -89 -25 -289 0 -378 141 -513 724 ' +
   "-749 1179 -477 405 242 503 778 209 1148 -100 125 -258 229 -417 273 -82 22 -282 29 -360 " +
-  '11z"/></g></svg>Decimen Optical Transfer';
+  '11z"/></g></svg>';
 
 /**
  * A standalone file has no siblings, so links to the other pages are dead ends.
@@ -74,7 +74,7 @@ export function rewriteStandaloneLinks(page: "send" | "receive"): Plugin {
         ' · <a class="support-link" href="https://buymeacoffee.com/bashalarmist" ' +
         'target="_blank" rel="noopener noreferrer" data-i18n="chrome.footerSupport">♥ support</a>',
       to: "",
-      required: true,
+      required: false,
     },
   ];
   return {

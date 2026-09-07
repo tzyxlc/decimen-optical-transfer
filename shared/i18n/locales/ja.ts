@@ -20,16 +20,14 @@ export const messages: Messages = {
   },
 
   home: {
-    title: "Decimen Optical Transfer — 光でファイルを転送",
+    title: "D",
     metaDescription:
-      "画面とカメラだけで、2台のデバイス間でファイルやテキストを送れます。ファウンテン符号化されたアニメーションQRコードを使い、間にネットワーク経路はありません。",
-    ogDescription:
-      "ファウンテン符号化されたアニメーションQRコードで、画面からカメラへ。アカウントもペアリングも、デバイス間のネットワーク経路も不要。実測データ付きベンチマークで %TOP_SPEED% を持続。",
-    ogImageAlt:
-      "転送中のスマートフォンが、別の画面のアニメーションQRコードのストリームを読み取っている様子。",
-    heroTitleHtml: "光で<br />ファイルを転送。",
+      "ローカル。",
+    ogDescription: "%TOP_SPEED%",
+    ogImageAlt: "Preview.",
+    heroTitleHtml: "D",
     heroCopy:
-      "ファイルやテキストを、画面から別のデバイスのカメラへ送信。アカウント、ペアリング、クラウド保存、デバイス間のネットワーク経路はいずれも不要です。",
+      "向きを選ぶ。",
     chooseSideAriaLabel: "送信側・受信側を選択",
     cardSendKicker: "この画面から送信",
     cardSendTitle: "ファイルやテキストを送信",
@@ -40,24 +38,23 @@ export const messages: Messages = {
     cardReceiveTitle: "カメラを向けて受信",
     cardReceiveBody: "カメラを送信側の画面に向けると、ファイルを受信できます。",
     cardReceiveAction: "受信",
-    shareSite: "Decimen を共有",
+    shareSite: "共有",
     certDownload: "HTTPS 証明書をダウンロード",
     certHint:
       "iPhone でカメラを使うにはこれが必要です。プロファイルをインストールし、「設定 → 一般 → 情報 → 証明書信頼設定」で完全な信頼を有効にしてください。",
     supportTitle: "無料・オープンソース・広告なし",
     supportBodyHtml:
-      'Decimen が役に立ったら、<a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">コーヒーを1杯おごる</a>ことで応援できます。',
+      'が役に立ったら、<a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">コーヒーを1杯おごる</a>ことで応援できます。',
     shareDialogTitle: "このアプリを共有",
     shareDialogHint: "別のデバイスのカメラでこれをスキャンするか、リンクを送ってください。",
     siteLinkAriaLabel: "サイトのリンク",
-    privacyNote:
-      "デバイス間にネットワーク経路は必要ありません。データは光として伝わります。ファイルは暗号化されないため、送信中の画面は、そこに向けられたどのカメラからも読み取れます。",
+    privacyNote: "",
   },
 
   send: {
-    docTitle: "Decimen Optical Transfer — 送信",
-    eyebrow: "画面 → カメラ",
-    introCopy: "受信側でスキャンするまで、データがこのデバイスの外に出ることはありません。",
+    docTitle: "送信",
+    eyebrow: "",
+    introCopy: "",
     modeAriaLabel: "送信する内容",
     modeFile: "ファイル",
     modeSnippet: "テキスト",
@@ -93,7 +90,7 @@ export const messages: Messages = {
     specQr: "QR",
     specSending: "送信対象",
     specCompression: "圧縮",
-    specFountainBlocks: "ファウンテンブロック",
+    specFountainBlocks: "blocks",
     statusChooseFile: "ファイルを選択すると開始します",
     statusPasteText: "テキストを貼り付けるか入力すると開始します",
     statusChooseDemo: "デモ用データを選択すると開始します",
@@ -104,7 +101,7 @@ export const messages: Messages = {
     shareDialogTitle: "受信ページを共有",
     shareDialogHint: "もう一方のデバイスのカメラでこれをスキャンするか、リンクを送ってください。",
     receiverLinkAriaLabel: "受信ページのリンク",
-    shareTitleData: "Decimen Optical Transfer — 受信ページ",
+    shareTitleData: "受信ページ",
     loadingDemo: (name) => `${name} を読み込み中…`,
     demoLoadFailed: (name, status) => `${name} を読み込めませんでした (${status})`,
     preparingFile: (name) => `${name} を準備中…`,
@@ -144,8 +141,8 @@ export const messages: Messages = {
   },
 
   receive: {
-    docTitle: "Decimen Optical Transfer — 受信",
-    eyebrow: "カメラ → このデバイス",
+    docTitle: "受信",
+    eyebrow: "",
     title: "受信",
     statusReady: "ファイルやテキストのストリームをスキャンする準備ができました",
     startCamera: "カメラを開始",
@@ -226,7 +223,7 @@ export const messages: Messages = {
     mediaVideo: "動画",
     mediaAudio: "音声",
     showMedia: (noun) => `${noun}を表示`,
-    clearCache: "Decimen のキャッシュを消去",
+    clearCache: "のキャッシュを消去",
     cacheCleared: "キャッシュを消去しました",
     clearCacheFailed: "消去できませんでした。もう一度お試しください",
     receivedPreviewAlt: (name) => `受信したファイルのプレビュー: ${name}`,
@@ -257,7 +254,7 @@ export const messages: Messages = {
     gzipIncomplete: "復元した gzip ペイロードが不完全です。",
     gzipLengthMismatch: "gzip ペイロードの長さがファイルヘッダーと一致しません。",
     decompressedLengthMismatch: "展開後のファイルの長さがヘッダーと一致しません。",
-    streamChecksumMismatch: "光学ストリームのチェックサムが一致しませんでした。",
+    streamChecksumMismatch: "Checksum mismatch.",
     sha256Failed: "復元したファイルは SHA-256 検証に失敗しました。",
     snippetEmpty: "送信する前に、テキストを貼り付けるか入力してください。",
     snippetOverLimit: (limit) => `テキストは ${limit} までです。`,
@@ -267,11 +264,11 @@ export const messages: Messages = {
 
   verdicts: {
     olderSender: (version) =>
-      `相手の画面は古い Decimen 形式 (v${version}) で送信しています。送信側のデバイスを更新してください。`,
+      `相手の画面は古い 形式 (v${version}) で送信しています。送信側のデバイスを更新してください。`,
     newerSender: (version) =>
-      `相手の画面は新しい Decimen 形式 (v${version}) で送信しています。受信するには、このアプリを更新してください。`,
+      `相手の画面は新しい 形式 (v${version}) で送信しています。受信するには、このアプリを更新してください。`,
     unsupportedFlags:
-      "このストリームは、このバージョンでは読み取れない Decimen の機能を使用しています。受信するには、このアプリを更新してください。",
+      "このストリームは、このバージョンでは読み取れない の機能を使用しています。受信するには、このアプリを更新してください。",
   },
 
   units: {
@@ -290,7 +287,7 @@ export const messages: Messages = {
     unreviewedNote:
       "この日本語訳は機械翻訳による下書きで、まだネイティブスピーカーの確認を受けていません。",
     unreviewedLinkText: "翻訳の問題を報告",
-    switchOffer: "Decimen は日本語でもご利用いただけます。",
+    switchOffer: "は日本語でもご利用いただけます。",
     switchAction: "日本語で表示",
   },
 };

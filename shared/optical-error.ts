@@ -32,7 +32,7 @@ export const ENGLISH_ERRORS: ErrorMessages = {
   gzipIncomplete: "The recovered gzip payload is incomplete.",
   gzipLengthMismatch: "The gzip payload length does not match its file header.",
   decompressedLengthMismatch: "The decompressed file length does not match its header.",
-  streamChecksumMismatch: "The optical stream checksum did not match.",
+  streamChecksumMismatch: "The stream checksum did not match.",
   sha256Failed: "The recovered file failed SHA-256 verification.",
   snippetEmpty: "Paste or type some text before sending.",
   snippetOverLimit: (limit) => `Text snippets are limited to ${limit}.`,

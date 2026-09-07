@@ -453,11 +453,11 @@ export function classifyFrame(bytes: Uint8Array): FrameVerdict {
 export function frameVerdictMessage(verdict: FrameVerdict): string | null {
   switch (verdict.kind) {
     case "older-sender":
-      return `That screen is sending an older Decimen format (v${verdict.version}). Update the sending device.`;
+      return `That screen is sending an older format (v${verdict.version}). Update the sending device.`;
     case "newer-sender":
-      return `That screen is sending a newer Decimen format (v${verdict.version}). Update this app to receive it.`;
+      return `That screen is sending a newer format (v${verdict.version}). Update this app to receive it.`;
     case "unsupported-flags":
-      return "That stream uses a Decimen feature this version cannot read. Update this app to receive it.";
+      return "That stream uses a feature this version cannot read. Update this app to receive it.";
     default:
       return null;
   }

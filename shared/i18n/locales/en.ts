@@ -23,26 +23,23 @@ export const messages: Messages = {
   },
 
   home: {
-    title: "Decimen Optical Transfer — transfer files with light",
-    metaDescription:
-      "Send a file or text between two devices with nothing but a screen and a camera. Fountain-coded animated QR codes, no network path in between.",
-    ogDescription:
-      "Fountain-coded animated QR codes, screen to camera. No account, no pairing, no network path between the two devices. %TOP_SPEED% sustained, benchmarked with receipts.",
-    ogImageAlt: "A phone mid-transfer, reading an animated QR code stream off another screen.",
-    heroTitleHtml: "Transfer files<br />with light.",
-    heroCopy:
-      "Send a file or a block of text from one screen to another device's camera. No account, pairing, cloud storage, or network path between devices.",
+    title: "D",
+    metaDescription: "Local pages.",
+    ogDescription: "%TOP_SPEED%",
+    ogImageAlt: "Preview.",
+    heroTitleHtml: "D",
+    heroCopy: "Choose a side.",
     chooseSideAriaLabel: "Choose a side",
-    cardSendKicker: "This screen transmits",
-    cardSendTitle: "Send a file or text",
+    cardSendKicker: "Out",
+    cardSendTitle: "Send",
     cardSendBody:
       "Any file up to %MAX_FILE_LABEL%, or a pasted text snippet up to %MAX_SNIPPET_LABEL%. Compressed when it helps, restored with its original name.",
     cardSendAction: "Send",
-    cardReceiveKicker: "This camera receives",
-    cardReceiveTitle: "Point and receive",
-    cardReceiveBody: "Point your camera at the sender's screen to receive the file.",
+    cardReceiveKicker: "In",
+    cardReceiveTitle: "Receive",
+    cardReceiveBody: "Use the camera.",
     cardReceiveAction: "Receive",
-    shareSite: "Share Decimen",
+    shareSite: "Share",
     certDownload: "Download HTTPS certificate",
     certHint:
       "iPhone needs this for the camera. Install the profile, then enable full trust under Settings → General → About → Certificate Trust Settings.",
@@ -52,21 +49,20 @@ export const messages: Messages = {
     shareDialogTitle: "Share this app",
     shareDialogHint: "Scan this with another device's camera, or send it the link.",
     siteLinkAriaLabel: "Site link",
-    privacyNote:
-      "A network path is not required between the devices. The bytes travel as light. Files are not encrypted, so anything on the sending screen is readable by any camera pointed at it.",
+    privacyNote: "",
   },
 
   send: {
-    docTitle: "Decimen Optical Transfer — send",
-    eyebrow: "Screen → camera",
-    introCopy: "Nothing leaves your device until you scan with a receiver.",
+    docTitle: "Send",
+    eyebrow: "",
+    introCopy: "",
     modeAriaLabel: "What to send",
     modeFile: "File",
     modeSnippet: "Text snippet",
-    titleFile: "Send a file",
-    titleSnippet: "Send text",
+    titleFile: "Send",
+    titleSnippet: "Text",
     selectFile: "Select File",
-    stopTransfer: "Stop transfer",
+    stopTransfer: "Stop",
     anyFileUpTo: "Any file · up to %MAX_FILE_LABEL%",
     selectedFile: (name) => `Selected file: ${name}`,
     demoPayload: "Demo payload",
@@ -80,7 +76,7 @@ export const messages: Messages = {
     snippetLabelWithMax: "Text to send · up to %MAX_SNIPPET_LABEL%",
     snippetPlaceholder: "Paste or type anything — a URL, a config, a wall of text…",
     startTextStream: "Start text stream",
-    settingsSummary: "Transfer settings",
+    settingsSummary: "Settings",
     settingTxFps: "tx fps",
     settingBytesPerFrame: "bytes / frame",
     settingEcc: "error correction",
@@ -95,7 +91,7 @@ export const messages: Messages = {
     specQr: "qr",
     specSending: "sending",
     specCompression: "compression",
-    specFountainBlocks: "fountain blocks",
+    specFountainBlocks: "blocks",
     statusChooseFile: "Choose a file to begin",
     statusPasteText: "Paste or type some text to begin",
     statusChooseDemo: "Choose a demo payload to begin",
@@ -106,7 +102,7 @@ export const messages: Messages = {
     shareDialogTitle: "Share the receiver",
     shareDialogHint: "Scan this with the other device's camera, or send it the link.",
     receiverLinkAriaLabel: "Receiver link",
-    shareTitleData: "Decimen Optical Transfer — receiver",
+    shareTitleData: "Receive",
     loadingDemo: (name) => `loading ${name}…`,
     demoLoadFailed: (name, status) => `could not load ${name} (${status})`,
     preparingFile: (name) => `preparing ${name}…`,
@@ -116,7 +112,7 @@ export const messages: Messages = {
     capacityError: (size, blocks, frameBytes, maxBlocks, suggestion) =>
       `${size} needs ${blocks} blocks at ${frameBytes} bytes per frame, and a frame can ` +
       `only number ${maxBlocks} of them. Raise bytes / frame to ${suggestion} or more.`,
-    streaming: (name) => `Streaming ${name} — `,
+    streaming: (name) => `${name} — `,
     shareReceiverLink: "Share receiver link",
     stallWarning: (seconds) =>
       `Stream froze for ${seconds} s — this window was hidden or in the background. ` +
@@ -127,9 +123,7 @@ export const messages: Messages = {
     gzipTo: (size) => `gzip → ${size}`,
     compressionNone: "none",
     exportSummary: "Export animation",
-    exportIntro:
-      "Save this stream as a looping animation file. Embed it in a video or a page — " +
-      "any camera pointed at the playing loop can receive the file.",
+    exportIntro: "Save as a looping file.",
     exportFormat: "format",
     exportFormatZip: "PNG sequence (ZIP)",
     exportFps: "frame rate",
@@ -145,19 +139,19 @@ export const messages: Messages = {
   },
 
   receive: {
-    docTitle: "Decimen Optical Transfer — receive",
-    eyebrow: "Camera → your device",
+    docTitle: "Receive",
+    eyebrow: "",
     title: "Receive",
-    statusReady: "Ready to scan a file or text stream",
+    statusReady: "Ready",
     startCamera: "Start camera",
     starting: "Starting…",
     noSignalQuestion: "Nothing happening?",
     progressZero: "0% · 0 frames",
     estimatingTime: "Estimating time…",
-    progressAriaLabel: "Transfer recovery progress",
+    progressAriaLabel: "Progress",
     tipsTitle: "Troubleshooting tips",
     tipDropFrameBytes: (bytes) =>
-      `On the sender, open Transfer settings and drop bytes / frame to ${bytes}.`,
+      `On the sender, open Settings and drop bytes / frame to ${bytes}.`,
     tipDropTxFps: (fps) => `Still nothing? Drop the sender's tx fps to ${fps} as well.`,
     tipFillView:
       "Fill this camera's view with the code, and prop the phone against something — " +
@@ -172,8 +166,8 @@ export const messages: Messages = {
     metricBlocks: "blocks K",
     metricMissing: "missing blocks",
     metricBlockLen: "block len",
-    metricTransfer: "transfer",
-    settingsSummary: "Receive settings",
+    metricTransfer: "payload",
+    settingsSummary: "Settings",
     settingCamera: "camera",
     cameraAuto: "auto",
     cameraN: (n) => `camera ${n}`,
@@ -204,13 +198,11 @@ export const messages: Messages = {
     framesDecoding: (frames) => `${frames} frames · decoding`,
     aboutEta: (duration, frames) => `About ${duration} · ${frames} frames`,
     etaTotal: (duration) => `${duration} total`,
-    transferFailedShort: "Transfer failed",
-    transferFailedDetail:
-      "Nothing usable came out of that stream. Restart the sender, then scan it again — " +
-      "a partial transfer costs nothing but the time.",
+    transferFailedShort: "Failed",
+    transferFailedDetail: "Nothing usable. Try again.",
     tryAgain: "Try again",
-    transferSummary: "Transfer summary",
-    transferComplete: "Transfer Complete!",
+    transferSummary: "Summary",
+    transferComplete: "Done",
     recoveredFile: "100% · file recovered",
     recoveredText: "100% · text recovered",
     textReceived: "Text received",
@@ -225,7 +217,7 @@ export const messages: Messages = {
     mediaVideo: "video",
     mediaAudio: "audio",
     showMedia: (noun) => `Show ${noun}`,
-    clearCache: "Clear Decimen cache",
+    clearCache: "Clear cache",
     cacheCleared: "Cache cleared",
     clearCacheFailed: "Clear failed — try again",
     receivedPreviewAlt: (name) => `Received file preview: ${name}`,
@@ -250,11 +242,11 @@ export const messages: Messages = {
 
   verdicts: {
     olderSender: (version) =>
-      `That screen is sending an older Decimen format (v${version}). Update the sending device.`,
+      `That screen is sending an older format (v${version}). Update the sending device.`,
     newerSender: (version) =>
-      `That screen is sending a newer Decimen format (v${version}). Update this app to receive it.`,
+      `That screen is sending a newer format (v${version}). Update this app to receive it.`,
     unsupportedFlags:
-      "That stream uses a Decimen feature this version cannot read. Update this app to receive it.",
+      "That stream uses a feature this version cannot read. Update this app to receive it.",
   },
 
   units: {
@@ -273,7 +265,7 @@ export const messages: Messages = {
     unreviewedNote:
       "This translation is machine-drafted and has not yet been reviewed by a native speaker.",
     unreviewedLinkText: "Report a translation issue",
-    switchOffer: "Decimen is available in English.",
+    switchOffer: "Available in English.",
     switchAction: "View in English",
   },
 };

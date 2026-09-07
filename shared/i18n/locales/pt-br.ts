@@ -20,16 +20,14 @@ export const messages: Messages = {
   },
 
   home: {
-    title: "Decimen Optical Transfer — transfira arquivos com luz",
+    title: "D",
     metaDescription:
-      "Envie um arquivo ou texto entre dois dispositivos usando apenas uma tela e uma câmera. Códigos QR animados com codificação fountain, sem nenhum caminho de rede no meio.",
-    ogDescription:
-      "Códigos QR animados com codificação fountain, da tela para a câmera. Sem conta, sem pareamento, sem caminho de rede entre os dois dispositivos. %TOP_SPEED% sustentados, comprovados em benchmark.",
-    ogImageAlt:
-      "Um celular no meio de uma transferência, lendo um fluxo de códigos QR animados na tela de outro dispositivo.",
-    heroTitleHtml: "Transfira arquivos<br />com luz.",
+      "Páginas locais.",
+    ogDescription: "%TOP_SPEED%",
+    ogImageAlt: "Preview.",
+    heroTitleHtml: "D",
     heroCopy:
-      "Envie um arquivo ou um bloco de texto de uma tela para a câmera de outro dispositivo. Sem conta, pareamento, armazenamento em nuvem ou caminho de rede entre os dispositivos.",
+      "Escolha um lado.",
     chooseSideAriaLabel: "Escolha um lado",
     cardSendKicker: "Esta tela transmite",
     cardSendTitle: "Envie um arquivo ou texto",
@@ -40,24 +38,23 @@ export const messages: Messages = {
     cardReceiveTitle: "Aponte e receba",
     cardReceiveBody: "Aponte a câmera para a tela do remetente para receber o arquivo.",
     cardReceiveAction: "Receber",
-    shareSite: "Compartilhar o Decimen",
+    shareSite: "Compartilhar",
     certDownload: "Baixar o certificado HTTPS",
     certHint:
       "O iPhone precisa disso para a câmera. Instale o perfil e ative a confiança total em Ajustes → Geral → Sobre → Ajustes de confiança do certificado.",
     supportTitle: "Gratuito, código aberto, sem anúncios",
     supportBodyHtml:
-      'Se o Decimen facilitou o seu dia, você pode <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">me pagar um café</a>.',
+      'Se o facilitou o seu dia, você pode <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">me pagar um café</a>.',
     shareDialogTitle: "Compartilhar este app",
     shareDialogHint: "Escaneie com a câmera de outro dispositivo, ou envie o link para ele.",
     siteLinkAriaLabel: "Link do site",
-    privacyNote:
-      "Não é necessário um caminho de rede entre os dispositivos. Os bytes viajam como luz. Os arquivos não são criptografados, então qualquer coisa na tela de envio pode ser lida por qualquer câmera apontada para ela.",
+    privacyNote: "",
   },
 
   send: {
-    docTitle: "Decimen Optical Transfer — enviar",
-    eyebrow: "Tela → câmera",
-    introCopy: "Nada sai do seu dispositivo até você escanear com um receptor.",
+    docTitle: "enviar",
+    eyebrow: "",
+    introCopy: "",
     modeAriaLabel: "O que enviar",
     modeFile: "Arquivo",
     modeSnippet: "Trecho de texto",
@@ -93,7 +90,7 @@ export const messages: Messages = {
     specQr: "qr",
     specSending: "enviando",
     specCompression: "compressão",
-    specFountainBlocks: "blocos fountain",
+    specFountainBlocks: "blocks",
     statusChooseFile: "Escolha um arquivo para começar",
     statusPasteText: "Cole ou digite um texto para começar",
     statusChooseDemo: "Escolha um payload de demonstração para começar",
@@ -104,7 +101,7 @@ export const messages: Messages = {
     shareDialogTitle: "Compartilhar o receptor",
     shareDialogHint: "Escaneie com a câmera do outro dispositivo, ou envie o link para ele.",
     receiverLinkAriaLabel: "Link do receptor",
-    shareTitleData: "Decimen Optical Transfer — receptor",
+    shareTitleData: "receptor",
     loadingDemo: (name) => `carregando ${name}…`,
     demoLoadFailed: (name, status) => `não foi possível carregar ${name} (${status})`,
     preparingFile: (name) => `preparando ${name}…`,
@@ -143,8 +140,8 @@ export const messages: Messages = {
   },
 
   receive: {
-    docTitle: "Decimen Optical Transfer — receber",
-    eyebrow: "Câmera → seu dispositivo",
+    docTitle: "receber",
+    eyebrow: "",
     title: "Receber",
     statusReady: "Pronto para escanear um fluxo de arquivo ou de texto",
     startCamera: "Iniciar câmera",
@@ -222,7 +219,7 @@ export const messages: Messages = {
     mediaVideo: "vídeo",
     mediaAudio: "áudio",
     showMedia: (noun) => `Mostrar ${noun}`,
-    clearCache: "Limpar cache do Decimen",
+    clearCache: "Limpar cache do",
     cacheCleared: "Cache limpo",
     clearCacheFailed: "Falha ao limpar — tente de novo",
     receivedPreviewAlt: (name) => `Prévia do arquivo recebido: ${name}`,
@@ -255,7 +252,7 @@ export const messages: Messages = {
       "O comprimento do payload gzip não corresponde ao cabeçalho do arquivo.",
     decompressedLengthMismatch:
       "O comprimento do arquivo descomprimido não corresponde ao cabeçalho.",
-    streamChecksumMismatch: "O checksum do fluxo óptico não confere.",
+    streamChecksumMismatch: "Checksum mismatch.",
     sha256Failed: "O arquivo recuperado falhou na verificação SHA-256.",
     snippetEmpty: "Cole ou digite um texto antes de enviar.",
     snippetOverLimit: (limit) => `Trechos de texto são limitados a ${limit}.`,
@@ -265,11 +262,11 @@ export const messages: Messages = {
 
   verdicts: {
     olderSender: (version) =>
-      `Aquela tela está enviando um formato Decimen mais antigo (v${version}). Atualize o dispositivo de envio.`,
+      `Aquela tela está enviando um formato mais antigo (v${version}). Atualize o dispositivo de envio.`,
     newerSender: (version) =>
-      `Aquela tela está enviando um formato Decimen mais novo (v${version}). Atualize este app para recebê-lo.`,
+      `Aquela tela está enviando um formato mais novo (v${version}). Atualize este app para recebê-lo.`,
     unsupportedFlags:
-      "Esse fluxo usa um recurso do Decimen que esta versão não consegue ler. Atualize este app para recebê-lo.",
+      "Esse fluxo usa um recurso do que esta versão não consegue ler. Atualize este app para recebê-lo.",
   },
 
   units: {
@@ -288,7 +285,7 @@ export const messages: Messages = {
     unreviewedNote:
       "Esta tradução é um rascunho gerado por máquina e ainda não foi revisada por um falante nativo.",
     unreviewedLinkText: "Relatar problema de tradução",
-    switchOffer: "O Decimen está disponível em português.",
+    switchOffer: "O está disponível em português.",
     switchAction: "Ver em português",
   },
 };

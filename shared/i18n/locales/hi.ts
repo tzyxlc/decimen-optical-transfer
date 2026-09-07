@@ -20,15 +20,14 @@ export const messages: Messages = {
   },
 
   home: {
-    title: "Decimen Optical Transfer — रोशनी से फ़ाइलें ट्रांसफ़र करें",
+    title: "D",
     metaDescription:
-      "सिर्फ़ एक स्क्रीन और एक कैमरे से दो डिवाइस के बीच फ़ाइल या टेक्स्ट भेजें। फ़ाउंटेन-कोडेड एनिमेटेड QR कोड — बीच में कोई नेटवर्क नहीं।",
-    ogDescription:
-      "फ़ाउंटेन-कोडेड एनिमेटेड QR कोड, स्क्रीन से कैमरे तक। न अकाउंट, न पेयरिंग, न दोनों डिवाइस के बीच कोई नेटवर्क। %TOP_SPEED% की स्थिर गति, प्रमाण सहित बेंचमार्क।",
-    ogImageAlt: "ट्रांसफ़र के बीच एक फ़ोन, दूसरी स्क्रीन से एनिमेटेड QR कोड स्ट्रीम पढ़ता हुआ।",
-    heroTitleHtml: "रोशनी से<br />फ़ाइलें ट्रांसफ़र करें।",
+      "स्थानीय पृष्ठ।",
+    ogDescription: "%TOP_SPEED%",
+    ogImageAlt: "Preview.",
+    heroTitleHtml: "D",
     heroCopy:
-      "एक स्क्रीन से दूसरे डिवाइस के कैमरे तक फ़ाइल या टेक्स्ट भेजें। न अकाउंट, न पेयरिंग, न क्लाउड स्टोरेज, न डिवाइसों के बीच कोई नेटवर्क।",
+      "एक तरफ़ चुनें।",
     chooseSideAriaLabel: "एक विकल्प चुनें",
     cardSendKicker: "यह स्क्रीन भेजती है",
     cardSendTitle: "फ़ाइल या टेक्स्ट भेजें",
@@ -39,24 +38,23 @@ export const messages: Messages = {
     cardReceiveTitle: "कैमरा दिखाएँ और प्राप्त करें",
     cardReceiveBody: "फ़ाइल प्राप्त करने के लिए अपना कैमरा भेजने वाली स्क्रीन की ओर करें।",
     cardReceiveAction: "प्राप्त करें",
-    shareSite: "Decimen शेयर करें",
+    shareSite: "शेयर करें",
     certDownload: "HTTPS प्रमाणपत्र डाउनलोड करें",
     certHint:
       "कैमरा के लिए iPhone को यह चाहिए। प्रोफ़ाइल इंस्टॉल करें, फिर सेटिंग्स → सामान्य → परिचय → प्रमाणपत्र विश्वास सेटिंग्स में पूरा भरोसा चालू करें।",
     supportTitle: "मुफ़्त, ओपन सोर्स, बिना विज्ञापन",
     supportBodyHtml:
-      'अगर Decimen ने आपका काम आसान किया हो, तो आप <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">मुझे एक कॉफ़ी पिला सकते हैं</a>।',
+      'अगर ने आपका काम आसान किया हो, तो आप <a href="https://buymeacoffee.com/bashalarmist" target="_blank" rel="noopener noreferrer">मुझे एक कॉफ़ी पिला सकते हैं</a>।',
     shareDialogTitle: "यह ऐप शेयर करें",
     shareDialogHint: "इसे दूसरे डिवाइस के कैमरे से स्कैन करें, या उसे लिंक भेज दें।",
     siteLinkAriaLabel: "साइट लिंक",
-    privacyNote:
-      "डिवाइसों के बीच किसी नेटवर्क की ज़रूरत नहीं — बाइट रोशनी के रूप में जाते हैं। फ़ाइलें एन्क्रिप्टेड नहीं होतीं, इसलिए भेजने वाली स्क्रीन पर जो कुछ है, उसे उस ओर किया गया कोई भी कैमरा पढ़ सकता है।",
+    privacyNote: "",
   },
 
   send: {
-    docTitle: "Decimen Optical Transfer — भेजें",
-    eyebrow: "स्क्रीन → कैमरा",
-    introCopy: "जब तक आप रिसीवर से स्कैन नहीं करते, आपके डिवाइस से कुछ भी बाहर नहीं जाता।",
+    docTitle: "भेजें",
+    eyebrow: "",
+    introCopy: "",
     modeAriaLabel: "क्या भेजना है",
     modeFile: "फ़ाइल",
     modeSnippet: "टेक्स्ट स्निपेट",
@@ -92,7 +90,7 @@ export const messages: Messages = {
     specQr: "qr",
     specSending: "भेजा जा रहा",
     specCompression: "कंप्रेशन",
-    specFountainBlocks: "फ़ाउंटेन ब्लॉक",
+    specFountainBlocks: "blocks",
     statusChooseFile: "शुरू करने के लिए कोई फ़ाइल चुनें",
     statusPasteText: "शुरू करने के लिए कुछ टेक्स्ट पेस्ट करें या लिखें",
     statusChooseDemo: "शुरू करने के लिए कोई डेमो पेलोड चुनें",
@@ -103,7 +101,7 @@ export const messages: Messages = {
     shareDialogTitle: "रिसीवर शेयर करें",
     shareDialogHint: "इसे दूसरे डिवाइस के कैमरे से स्कैन करें, या उसे लिंक भेज दें।",
     receiverLinkAriaLabel: "रिसीवर लिंक",
-    shareTitleData: "Decimen Optical Transfer — रिसीवर",
+    shareTitleData: "रिसीवर",
     loadingDemo: (name) => `${name} लोड किया जा रहा है…`,
     demoLoadFailed: (name, status) => `${name} लोड नहीं हो सका (${status})`,
     preparingFile: (name) => `${name} तैयार किया जा रहा है…`,
@@ -143,8 +141,8 @@ export const messages: Messages = {
   },
 
   receive: {
-    docTitle: "Decimen Optical Transfer — प्राप्त करें",
-    eyebrow: "कैमरा → आपका डिवाइस",
+    docTitle: "प्राप्त करें",
+    eyebrow: "",
     title: "प्राप्त करें",
     statusReady: "फ़ाइल या टेक्स्ट स्ट्रीम स्कैन करने के लिए तैयार",
     startCamera: "कैमरा शुरू करें",
@@ -222,7 +220,7 @@ export const messages: Messages = {
     mediaVideo: "वीडियो",
     mediaAudio: "ऑडियो",
     showMedia: (noun) => `${noun} दिखाएँ`,
-    clearCache: "Decimen कैश साफ़ करें",
+    clearCache: "कैश साफ़ करें",
     cacheCleared: "कैश साफ़ हो गया",
     clearCacheFailed: "साफ़ नहीं हो सका — फिर कोशिश करें",
     receivedPreviewAlt: (name) => `प्राप्त फ़ाइल का प्रीव्यू: ${name}`,
@@ -253,7 +251,7 @@ export const messages: Messages = {
     gzipIncomplete: "प्राप्त gzip पेलोड अधूरा है।",
     gzipLengthMismatch: "gzip पेलोड की लंबाई फ़ाइल हेडर से मेल नहीं खाती।",
     decompressedLengthMismatch: "डीकंप्रेस की गई फ़ाइल की लंबाई हेडर से मेल नहीं खाती।",
-    streamChecksumMismatch: "ऑप्टिकल स्ट्रीम का चेकसम मेल नहीं खाया।",
+    streamChecksumMismatch: "Checksum mismatch.",
     sha256Failed: "प्राप्त फ़ाइल SHA-256 सत्यापन में विफल रही।",
     snippetEmpty: "भेजने से पहले कुछ टेक्स्ट पेस्ट करें या लिखें।",
     snippetOverLimit: (limit) => `टेक्स्ट स्निपेट की सीमा ${limit} है।`,
@@ -263,11 +261,11 @@ export const messages: Messages = {
 
   verdicts: {
     olderSender: (version) =>
-      `वह स्क्रीन पुराना Decimen फ़ॉर्मैट (v${version}) भेज रही है। भेजने वाले डिवाइस को अपडेट करें।`,
+      `वह स्क्रीन पुराना फ़ॉर्मैट (v${version}) भेज रही है। भेजने वाले डिवाइस को अपडेट करें।`,
     newerSender: (version) =>
-      `वह स्क्रीन नया Decimen फ़ॉर्मैट (v${version}) भेज रही है। इसे प्राप्त करने के लिए यह ऐप अपडेट करें।`,
+      `वह स्क्रीन नया फ़ॉर्मैट (v${version}) भेज रही है। इसे प्राप्त करने के लिए यह ऐप अपडेट करें।`,
     unsupportedFlags:
-      "वह स्ट्रीम Decimen की ऐसी सुविधा इस्तेमाल करती है जिसे यह वर्शन नहीं पढ़ सकता। इसे प्राप्त करने के लिए यह ऐप अपडेट करें।",
+      "वह स्ट्रीम की ऐसी सुविधा इस्तेमाल करती है जिसे यह वर्शन नहीं पढ़ सकता। इसे प्राप्त करने के लिए यह ऐप अपडेट करें।",
   },
 
   units: {
@@ -286,7 +284,7 @@ export const messages: Messages = {
     unreviewedNote:
       "यह अनुवाद मशीन से तैयार किया गया है और अभी तक किसी हिन्दी भाषी ने इसकी समीक्षा नहीं की है।",
     unreviewedLinkText: "अनुवाद की समस्या बताएँ",
-    switchOffer: "Decimen हिन्दी में उपलब्ध है।",
+    switchOffer: "हिन्दी में उपलब्ध है।",
     switchAction: "हिन्दी में देखें",
   },
 };

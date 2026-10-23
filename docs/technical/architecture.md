@@ -19,6 +19,20 @@ PNG-sequence ZIP, DOM-free so the whole pipeline is Node-tested
 rasterizer, and its size forecast samples a real frame rather than modeling
 one).
 
+The receive page is layered so the decode path has exactly one implementation:
+
+- `receive/decode-engine.ts` — the codec wrapper: prefetch, instantiate, and
+  the `readFull`/`readTracked` calls. Shared by both decode hosts below.
+- `receive/worker.ts` — the Worker host: a thin `onmessage` shim over the
+  engine. `receive/main-decode.ts` is the same protocol on the page thread,
+  for iOS 14 where WASM-in-Worker is unreliable.
+- `receive/worker-factory.ts` — the one place a `Worker` is constructed.
+  Standalone builds swap it (plus `wasm-url.ts`) for the `.inline` variants at
+  resolve time, so the site bundle never parses the base64 form.
+- `receive/safari14-polyfill.ts` — `BigInt64Array`/`BigInt.asUintN`/`Array.at`,
+  which the emscripten glue needs and Safari 14 lacks.
+- `receive/support.ts` — hosted-only support link, `null` in standalone builds.
+
 ## Shared modules (`shared/`)
 
 - `fountain.ts` — LT encoder/decoder, deterministic soliton distribution (see [Protocol](protocol.md)).
@@ -29,14 +43,19 @@ one).
 - `apng.ts` — APNG assembly over `png.ts`: `acTL`/`fcTL`/`fdAT`, exact rational frame delays, infinite loop.
 - `zip.ts` — store-mode ZIP writer for the PNG-sequence export; structure only, the PNGs are already deflated.
 - `display.ts` — QR display-size fitting against the viewport.
-- `platform.ts` — `isIOS`/`isAndroid` sniffs and camera capability probing (torch, continuous focus, max fps). Policy: probe wherever probeable; sniff only for unprobeable behavior.
-- `worker-pool.ts` — decode worker pool; busy workers drop frames, the fountain absorbs it.
+- `platform.ts` — `isIOS`/`isIOS14`/`isAndroid` sniffs and camera capability probing (torch, continuous focus, max fps). Policy: probe wherever probeable; sniff only for unprobeable behavior.
+- `worker-pool.ts` — decode worker pool. Busy workers drop frames, the fountain absorbs it; warm-up state is `idle | warming | ready | failed`, so a slow WASM load stays "warming" (see [Platform quirks](platform-quirks.md)).
+- `compression.ts` — gzip/gunzip with a hard output ceiling; native Compression Streams when present, `fflate` on Safari < 16.4.
+- `optical-error.ts` — coded protocol errors, so a failure localizes instead of shipping an English sentence.
+- `preview-box.ts` — preview sizing helpers, including the `aspect-ratio` capability probe.
+- `clipboard.ts` — copy with the `execCommand` fallback iOS needs.
 - `no-signal.ts` — pure timing policy for the "Nothing happening?" hint (short first delay, longer after dismissal).
 - `progress.ts` — frames-collected progress estimation and fountain-overhead model.
 - `send-settings.ts` — canonical tx settings lists; the sender's dropdowns and the no-signal advice both render from it.
 - `snippet.ts` — text-snippet container type.
 - `dialog.ts` — geometric backdrop-click close for `<dialog>`.
 - `share-dialog.ts` — the share dialog both home and sender carry (QR + copy + OS sheet).
+- `i18n/` — the twelve-language runtime: `messages.ts` (the typed interface), `locales/<code>.ts` (one catalog each), `registry.ts`, `loaders.ts`. See [Localization](localization.md).
 - `status-line.ts`, `wake-lock.ts`, `format.ts`, `style.css`.
 
 ## Build plugins (`build/`)
@@ -45,10 +64,12 @@ One file each, exact-match string surgery that **throws when it misses** — mar
 
 - `html-tokens.ts` — `%TOKEN%` substitution (site URL, settings options, version, build id).
 - `root-pwa-head.ts` — owns the manifest link and SW registration on every page; validates the URLs resolve to the site root under any subpath.
+- `i18n-pages.ts` — emits the per-locale page trees (`/es/send/`, …) with translated markup, hreflang and per-locale PWA manifests (see [Localization](localization.md)).
 - `rewrite-standalone-links.ts` — strips/rewrites hosted-site references for the single-file builds.
 - `inline-codec-wasm.ts`, `use-inline-variants.ts` — inline the decoder wasm/worker for standalone.
 - `standalone-csp.ts`, `emit-as.ts` — standalone CSP and output naming.
 - `license-banner.ts` — prepends the version/license/source banner to every built artifact.
+- `cert-pem-endpoint.ts` — dev-only `/__cert.pem` handler so an iOS 14 phone can install the self-signed cert.
 - `diagnostics-endpoint.ts` — dev-only `/__diagnostics` collector behind `npm run diagnostics` (see [Diagnostics](diagnostics.md)).
 - `make-icons.ts` — regenerates `public/` icons from the logo (`npm run icons`, needs librsvg).
 - `benchmarks.ts` — promotes captured diagnostics runs to benchmark records and renders the README "Measured speed" section from `benchmarks/records.json` (see [Diagnostics](diagnostics.md)).

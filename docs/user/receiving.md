@@ -2,6 +2,8 @@
 
 Open `/receive/`, tap **Start camera**, point it at the sender's code. There is no pairing: the receiver locks onto any Decimen stream mid-flight, works out on its own whether a file or text is arriving, and restarts cleanly if the sender does. It also cannot tell a live sender from an [exported animation](sending.md#export-animation) playing in a page or a video — point it at either.
 
+The decoder downloads itself the moment you tap **Start camera**, while the permission sheet is still up. On a slow first load the status line reads **starting the QR decoder** and decoding begins on its own when it arrives — there is nothing to press and no reason to reload.
+
 Fill the camera view with the code and prop the phone against something — autofocus hunting from hand tremor is the #1 throughput killer. On cameras that support it (Android, typically) continuous autofocus is enabled automatically.
 
 Progress counts **frames collected**, not blocks solved — fountain decoding back-loads its solve cascade, so the bar is estimated from frame rate and only verified completion reaches 100%.
@@ -25,5 +27,5 @@ Camera settings apply live while the camera runs; a device that refuses a live r
 | camera | auto | the device list fills in once the camera starts (browsers hide camera names until permission is granted); pick a specific one when auto grabs the wrong lens — front, or a telephoto — and the stream switches over live |
 | capture width | 1280 | 1920 costs decode time; 960 helps weak CPUs |
 | capture fps | 60 | iOS delivers 30 unless the exact rate is demanded — the app handles this |
-| decode workers | device max | one WASM decoder per worker; busy workers drop frames, which the fountain absorbs |
+| decode workers | device max (2 on iPhone, 1 on iOS 14) | one WASM decoder per worker, each ~272 KB; busy workers drop frames, which the fountain absorbs. More workers than the device has cores are removed from the list outright. |
 | show received files automatically | on | the only setting that persists between sessions, and the only one read when a transfer *lands* rather than when the camera starts |

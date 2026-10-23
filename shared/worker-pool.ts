@@ -5,8 +5,9 @@
 // workers' indices alone. Shrinking from the end is what makes that true, and
 // it is why this is worth having on its own rather than inline in the receiver.
 //
-// Each worker holds its own ~940 KB zxing WASM instance, so the pool is also
-// how the receiver reclaims that memory the moment the last frame is in.
+// Each worker holds its own ~272 KB zxing WASM instance (plus its compiled
+// heap), so the pool is also how the receiver reclaims that memory the moment
+// the last frame is in.
 
 export interface PoolWorker {
   onmessage: ((event: MessageEvent) => void) | null;

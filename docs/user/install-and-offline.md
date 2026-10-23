@@ -4,8 +4,8 @@ Three shapes, all built from the same source. Built artifacts for all three are 
 
 | | what it is | needs a server? | offline |
 |---|---|---|---|
-| **Hosted site** | three pages plus a service worker — live at [decimen.app](https://decimen.app/) | yes, any static host | after the first visit |
-| **`decimen-sender.html`** | one file, ~55 KB | no | always |
+| **Hosted site** | three pages plus a service worker — live at [decimen.app](https://decimen.app/) and at this fork's [tzyxlc.github.io/decimen-optical-transfer](https://tzyxlc.github.io/decimen-optical-transfer/) | yes, any static host | after the first visit |
+| **`decimen-sender.html`** | one file, ~240 KB | no | always |
 | **`decimen-receiver.html`** | one file, ~1.3 MB | see the caveat | always |
 
 ## Hosted site: install and offline
@@ -21,7 +21,7 @@ This is the shape to use on a phone: it keeps a real `https://` origin, which is
 
 ## Standalone files
 
-`npm run build:standalone` produces two pages with nothing external in them — no script src, no stylesheet, no fetch. The receiver carries the 940 KB decoder wasm as a `data:` URI, which is why it is 1.3 MB. Mail one to someone, drop it on a USB stick.
+`npm run build:standalone` produces two pages with nothing external in them — no script src, no stylesheet, no fetch. The receiver carries the 272 KB decoder wasm (278 594 bytes) as a base64 `data:` URI, which inflates it by a third and is most of why the file is over a megabyte. Mail one to someone, drop it on a USB stick.
 
 **The receiver's one caveat:** opened from `file://`, the page gets an opaque origin. Desktop Chrome and Firefox will generally prompt for the camera and work; **iOS Safari and Android Chrome will not give a local file a camera.** Since the receiver is usually the phone, serve the file over http(s) from anything — or use the hosted site's offline mode instead. The sender has no such problem; it works from `file://` everywhere.
 

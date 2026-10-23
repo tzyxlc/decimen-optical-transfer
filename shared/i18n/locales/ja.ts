@@ -188,6 +188,7 @@ export const messages: Messages = {
       "そのカメラは利用できなくなりました。カメラを「自動」に戻して「カメラを開始」をタップしてください。",
     errCamera: (message) => `カメラ: ${message}`,
     errDecoder: "QRデコーダーを起動できませんでした。ページを再読み込みしてください。",
+    decoderStarting: "QR デコーダーを起動しています — 準備でき次第、自動でデコードを開始します…",
     errBlankCapture: "カメラ映像が空です。ページを再読み込みしてください。",
     errRestartFailed:
       "カメラ: 切り替え後に再起動できませんでした。「カメラを開始」をタップしてください。",

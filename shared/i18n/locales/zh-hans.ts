@@ -179,6 +179,7 @@ export const messages: Messages = {
     errCameraGone: "该摄像头已不可用——请把摄像头设回“自动”，再点按“启动摄像头”。",
     errCamera: (message) => `摄像头：${message}`,
     errDecoder: "二维码解码器未能启动——请刷新页面。",
+    decoderStarting: "正在启动二维码解码器——就绪后会自动开始解码……",
     errBlankCapture: "采集到的画面是空的——请刷新页面，并保持预览在屏幕上。",
     errRestartFailed: "摄像头：切换后无法重新启动——请点按“启动摄像头”。",
     errLiveChangeRefused: "此摄像头拒绝实时更改——重新启动后生效",

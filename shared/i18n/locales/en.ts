@@ -186,6 +186,7 @@ export const messages: Messages = {
       "that camera is no longer available — set camera back to auto and tap Start camera.",
     errCamera: (message) => `camera: ${message}`,
     errDecoder: "the QR decoder failed to start — reload the page.",
+    decoderStarting: "starting the QR decoder — decoding begins automatically when it is ready…",
     errBlankCapture: "camera frames are blank — reload the page. On iOS, keep the preview on screen.",
     errRestartFailed: "camera: could not restart after the switch — tap Start camera.",
     errLiveChangeRefused: "this camera refused a live change — restart to apply",

@@ -191,6 +191,7 @@ export const messages: Messages = {
       "diese Kamera ist nicht mehr verfügbar — stellen Sie Kamera auf auto zurück und tippen Sie auf „Kamera starten“.",
     errCamera: (message) => `Kamera: ${message}`,
     errDecoder: "Der QR-Decoder ist nicht gestartet — Seite neu laden.",
+    decoderStarting: "QR-Decoder wird gestartet — die Dekodierung beginnt automatisch, sobald er bereit ist …",
     errBlankCapture: "Kamerabilder sind leer — Seite neu laden.",
     errRestartFailed:
       "Kamera: Neustart nach dem Wechsel fehlgeschlagen — tippen Sie auf „Kamera starten“.",

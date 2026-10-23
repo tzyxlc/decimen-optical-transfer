@@ -189,6 +189,7 @@ export const messages: Messages = {
       "esa cámara ya no está disponible — vuelva a poner cámara en auto y toque Iniciar cámara.",
     errCamera: (message) => `cámara: ${message}`,
     errDecoder: "el decodificador QR no arrancó — recarga la página.",
+    decoderStarting: "iniciando el decodificador de QR: la decodificación empezará sola en cuanto esté listo…",
     errBlankCapture: "los fotogramas de la cámara están en blanco — recarga la página.",
     errRestartFailed: "cámara: no se pudo reiniciar tras el cambio — toque Iniciar cámara.",
     errLiveChangeRefused: "esta cámara rechazó un cambio en vivo — reinicie para aplicarlo",

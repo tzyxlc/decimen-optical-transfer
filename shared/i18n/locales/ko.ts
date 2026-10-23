@@ -188,6 +188,7 @@ export const messages: Messages = {
       "해당 카메라를 더 이상 사용할 수 없습니다 — 카메라를 자동으로 되돌리고 카메라 시작을 누르세요.",
     errCamera: (message) => `카메라: ${message}`,
     errDecoder: "QR 디코더를 시작하지 못했습니다. 페이지를 새로고침하세요.",
+    decoderStarting: "QR 디코더를 시작하는 중입니다 — 준비되면 자동으로 디코딩을 시작합니다…",
     errBlankCapture: "카메라 프레임이 비어 있습니다. 페이지를 새로고침하세요.",
     errRestartFailed: "카메라: 전환 후 다시 시작하지 못했습니다 — 카메라 시작을 누르세요.",
     errLiveChangeRefused: "이 카메라가 실시간 변경을 거부했습니다 — 적용하려면 다시 시작하세요",

@@ -198,6 +198,7 @@ export const messages: Messages = {
       "Démarrer la caméra.",
     errCamera: (message) => `caméra : ${message}`,
     errDecoder: "le décodeur QR n’a pas démarré — rechargez la page.",
+    decoderStarting: "démarrage du décodeur QR — le décodage commencera automatiquement dès qu’il sera prêt…",
     errBlankCapture: "les images de la caméra sont vides — rechargez la page.",
     errRestartFailed:
       "caméra : redémarrage impossible après le changement — appuyez sur Démarrer la caméra.",

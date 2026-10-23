@@ -192,6 +192,7 @@ export const messages: Messages = {
       "quella fotocamera non è più disponibile: riporta fotocamera su auto e tocca Avvia fotocamera.",
     errCamera: (message) => `fotocamera: ${message}`,
     errDecoder: "il decodificatore QR non è partito — ricarica la pagina.",
+    decoderStarting: "avvio del decodificatore QR: la decodifica inizierà da sola appena sarà pronto…",
     errBlankCapture: "i fotogrammi della fotocamera sono vuoti — ricarica la pagina.",
     errRestartFailed:
       "fotocamera: impossibile riavviarla dopo il cambio — tocca Avvia fotocamera.",

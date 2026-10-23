@@ -484,8 +484,12 @@ let lastDecoderError = "";
 reportDecoderFailure = (detail?: string) => {
   if (detail) lastDecoderError = detail;
   if (done || decoderFailShown) return;
+  // A timeout is lateness, not failure: the pool keeps warming and says so
+  // through watchReady, so a slow first load must not paint an error over a
+  // live camera. Real failures arrive with a reason attached.
+  if (!detail) return;
   decoderFailShown = true;
-  showError(detail ? `${msg.receive.errDecoder} (${detail})` : msg.receive.errDecoder);
+  showError(`${msg.receive.errDecoder} (${detail})`);
 };
 
 // The toast asks one question; the answers live in the dialog. The tip list is
@@ -767,6 +771,26 @@ async function populateCameraOptions() {
   cfgCamera.value = cameras.some((d) => d.deviceId === chosen) ? chosen : "";
 }
 
+/**
+ * Pick the decode thread and start the worker pool, which is what kicks off the
+ * 278 KB WASM fetch and its compile.
+ *
+ * Split out of start() so it can run BEFORE getUserMedia: the camera prompt is
+ * seconds of user time during which nothing else was happening, and the WASM
+ * load is the receiver's slowest startup step. Overlapping the two is what
+ * keeps the wait in start() from ever being the thing that decides a session.
+ */
+async function prepareDecoder(): Promise<void> {
+  if (ios14 || new URLSearchParams(window.location.search).get("decode") === "main") {
+    // Safari 14 often cannot instantiate WASM inside a Worker. Decode on
+    // this thread instead — one WASM instance, same codec.
+    const { createMainDecodeWorker } = await import("./main-decode");
+    createWorker = createMainDecodeWorker;
+    cfgWorkers.value = "1";
+  }
+  pool.resize(Number(cfgWorkers.value));
+}
+
 async function start() {
   if (!navigator.mediaDevices?.getUserMedia) {
     // On insecure origins the API doesn't exist AT ALL — this is the plain-
@@ -781,9 +805,15 @@ async function start() {
   // Before any await: iOS 14 has no Wake Lock API, and the audio fallback
   // only starts from a user gesture. A 20 s WASM init would be too late.
   requestScreenWakeLock();
+  // Also before any await, and deliberately not awaited: the worker boots and
+  // the WASM starts downloading while the permission sheet is still up. A
+  // rejection is collected below, once the camera is up and there is a status
+  // line to report it on.
+  const decoderPrep = prepareDecoder();
   try {
     stream = await acquireCamera(cameraSelection());
   } catch (err) {
+    decoderPrep.catch(() => undefined); // the retry will re-run prepareDecoder
     const denied = err instanceof DOMException && err.name === "NotAllowedError";
     const gone = err instanceof DOMException && err.name === "OverconstrainedError";
     offerRetry(
@@ -807,29 +837,34 @@ async function start() {
     msg.receive.cameraSearching(`${settings?.width}×${settings?.height}@${settings?.frameRate}`),
   );
 
-  if (ios14 || new URLSearchParams(window.location.search).get("decode") === "main") {
-    // Safari 14 often cannot instantiate WASM inside a Worker. Decode on
-    // this thread instead — one WASM instance, same codec.
-    try {
-      const { createMainDecodeWorker } = await import("./main-decode");
-      createWorker = createMainDecodeWorker;
-      cfgWorkers.value = "1";
-    } catch (err) {
-      offerRetry(
-        `${msg.receive.errDecoder} (${err instanceof Error ? err.message : String(err)})`,
-      );
-      return;
-    }
+  // The main-thread decoder import only resolves here; on a worker build this
+  // has usually been settled for the whole duration of the camera prompt.
+  try {
+    await decoderPrep;
+  } catch (err) {
+    for (const track of stream.getTracks()) track.stop();
+    stream = null;
+    video.srcObject = null;
+    offerRetry(
+      `${msg.receive.errDecoder} (${err instanceof Error ? err.message : String(err)})`,
+    );
+    return;
   }
-  pool.resize(Number(cfgWorkers.value));
+
+  // Wait a sensible while for the WASM. A false answer means "not yet", NOT
+  // "broken" — see the warm-state note in shared/worker-pool.ts.
   const decoderOk = await pool.whenReady(ios14 ? 20_000 : 12_000);
-  if (!decoderOk) {
+  if (!decoderOk && pool.warmState === "failed") {
+    // A worker actually reported a failure (bad WASM, no SIMD, crash). There
+    // is nothing to wait for: tear the session down and offer a retry.
     pool.resize(0);
     for (const track of stream.getTracks()) track.stop();
     stream = null;
     video.srcObject = null;
     offerRetry(
-      lastDecoderError ? `${msg.receive.errDecoder} (${lastDecoderError})` : msg.receive.errDecoder,
+      pool.failureReason || lastDecoderError
+        ? `${msg.receive.errDecoder} (${pool.failureReason || lastDecoderError})`
+        : msg.receive.errDecoder,
     );
     return;
   }
@@ -847,11 +882,41 @@ async function start() {
     cfgCamera.addEventListener("change", () => void switchCamera());
   }
 
+  // The camera runs either way. If the WASM was merely slow, the pool reports
+  // ready when it lands and capture starts on its own — the previous build
+  // killed a live camera on the timeout, which left the phone needing a reload
+  // for a decoder that was already almost finished.
+  if (!decoderOk) showDecoderStarting();
+
   noSignal.cameraStarted(performance.now());
   cameraStartedTs = performance.now();
   captureGen++;
   scheduleFrame(captureGen);
   statsTimer = setInterval(updateStats, 500);
+}
+
+/** Put the "still starting" line up, then hand back to the live readout once
+ *  the late warm-up lands. Called only on the slow path, so the common case
+ *  never flashes it.
+ *
+ *  The capture loop is deliberately NOT restarted here: it is already running
+ *  and `captureFrame` no-ops while `!pool.isReady`, so decoding begins on the
+ *  next tick after the pool flips warm. Re-scheduling would leave two chains
+ *  racing the same generation counter. */
+function showDecoderStarting(): void {
+  setStatus(msg.receive.decoderStarting);
+  pool.watchReady(() => {
+    if (done) return;
+    const track = stream?.getVideoTracks()[0]?.getSettings();
+    setStatus(
+      msg.receive.cameraSearching(`${track?.width}×${track?.height}@${track?.frameRate}`),
+    );
+    reportCameraSettings();
+    // The no-signal countdown and the acquisition-latency figure both mean
+    // "time spent decoding", which only starts now.
+    cameraStartedTs = performance.now();
+    noSignal.cameraStarted(performance.now());
+  });
 }
 
 /** Report what the camera actually negotiated — iOS in particular will happily

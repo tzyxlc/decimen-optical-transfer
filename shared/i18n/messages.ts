@@ -209,6 +209,9 @@ export interface Messages {
     errCameraGone: string;
     errCamera: (message: string) => string; // "camera: …"
     errDecoder: string; // WASM/worker failed to start
+    /** Decoder still warming up. Not an error: the camera runs and decoding
+     *  begins on its own when the WASM lands. */
+    decoderStarting: string; // "starting the QR decoder — decoding begins automatically…"
     errBlankCapture: string; // canvas frames are black
     errRestartFailed: string;
     errLiveChangeRefused: string;

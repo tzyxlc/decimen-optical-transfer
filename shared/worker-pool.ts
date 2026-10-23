@@ -62,8 +62,20 @@ interface DecodeMessage {
 export class DecodeWorkerPool {
   private readonly workers: PoolWorker[] = [];
   private readonly busy: boolean[] = [];
-  private warmed: boolean | null = null;
-  private readonly readyWaiters: Array<(ok: boolean) => void> = [];
+  /** Warm-up state, and deliberately not a boolean.
+   *
+   *  "warming" outlives a `whenReady` timeout. A cold 278 KB WASM fetch plus
+   *  its compile and instantiate is the receiver's slowest startup step, and on
+   *  a phone link it routinely needs longer than any wait worth blocking the
+   *  camera start for. Latching "dead" on that timeout is what put a live
+   *  camera with 0 dec/s in front of iPhone users on IOS 27: the WASM arrived a
+   *  second too late, the pool had already written off the whole session, and
+   *  the only recovery on offer was a page reload. A late success now promotes
+   *  the pool, and a late failure still reports its reason. */
+  private warm: "idle" | "warming" | "ready" | "failed" = "idle";
+  /** Why the last warm-up failed, when it did. Empty means "no answer yet". */
+  private failure = "";
+  private readonly readyWaiters = new Set<(ok: boolean) => void>();
 
   constructor(
     private readonly create: () => PoolWorker,
@@ -85,54 +97,106 @@ export class DecodeWorkerPool {
   /** True after the first successful warm-up ping. Capture must not submit
    *  before this — a hung WASM init would occupy the only slot forever. */
   get isReady(): boolean {
-    return this.warmed === true;
+    return this.warm === "ready";
   }
 
-  /** Wait until a worker reports WASM ready, or `timeoutMs` elapses. */
+  /** Still initializing, with no verdict yet. The receiver keeps the camera up
+   *  and waits rather than tearing the session down: this is the state a slow
+   *  first WASM load sits in. */
+  get isStarting(): boolean {
+    return this.warm === "warming";
+  }
+
+  /** The warm-up's own verdict, once it has one. "idle" and "warming" both mean
+   *  no answer yet — never a failure. */
+  get warmState(): "idle" | "warming" | "ready" | "failed" {
+    return this.warm;
+  }
+
+  /**
+   * Wait until a worker reports on the WASM, or `timeoutMs` elapses.
+   *
+   * A timeout resolves false WITHOUT cancelling the warm-up — it is "not ready
+   * yet", not "dead". Callers that keep the camera running on a false answer
+   * get promoted for free when the WASM finally lands (see `watchReady`). Only a
+   * worker explicitly reporting `ready: false` marks the pool failed.
+   */
   whenReady(timeoutMs = 15_000): Promise<boolean> {
-    if (this.warmed !== null) return Promise.resolve(this.warmed);
+    if (this.warm === "ready") return Promise.resolve(true);
+    if (this.warm === "failed") return Promise.resolve(false);
     if (this.workers.length === 0) return Promise.resolve(false);
     return new Promise((resolve) => {
-      const timer = setTimeout(() => {
-        if (this.warmed !== null) return;
-        this.onWorkerError?.("decoder init timed out");
-        this.finishWarm(false);
-        resolve(false);
-      }, timeoutMs);
-      this.readyWaiters.push((ok) => {
+      const waiter = (ok: boolean) => {
         clearTimeout(timer);
+        this.readyWaiters.delete(waiter);
         resolve(ok);
-      });
+      };
+      const timer = setTimeout(() => {
+        // Still warming: report "not yet" and leave the waiter registry alone,
+        // so the pool's eventual verdict is not swallowed by this dead
+        // callback. The caller decides whether lateness is fatal.
+        const settled = this.warm === "ready" || this.warm === "failed";
+        waiter(settled ? this.warm === "ready" : false);
+      }, timeoutMs);
+      this.readyWaiters.add(waiter);
     });
   }
 
+  /** Notified the moment the pool becomes ready, however late that is. Lets a
+   *  receiver that already stopped blocking on `whenReady` start decoding
+   *  without making the user reload the page. */
+  private onBecameReady?: () => void;
+
+  /** Called by the receiver to learn when a slow warm-up comes good. */
+  watchReady(handler: () => void): void {
+    this.onBecameReady = handler;
+    if (this.warm === "ready") handler();
+  }
+
   private finishWarm(ok: boolean): void {
-    if (this.warmed !== null) return;
-    this.warmed = ok;
-    const waiters = this.readyWaiters.splice(0);
+    if (this.warm === "ready" || this.warm === "failed") return;
+    this.warm = ok ? "ready" : "failed";
+    const waiters = [...this.readyWaiters];
+    this.readyWaiters.clear();
     for (const waiter of waiters) waiter(ok);
+    if (ok) this.onBecameReady?.();
   }
 
   /** Grow or shrink in place. Terminating a busy worker just drops the frame it
-   *  held, which the fountain absorbs like any other miss. */
+   *  held, which the fountain absorbs like any other miss.
+   *
+   *  Warm-up state is only ever reset by draining to zero, which retires the
+   *  workers whose WASM instance it described. Growing a warm pool (1 → 2 for a
+   *  mid-session worker change) leaves it warm: a new slot starts its own init
+   *  and `finishWarm` ignores the duplicate ping. */
   resize(count: number): void {
     while (this.workers.length > Math.max(0, count)) {
       this.workers.pop()!.terminate();
       this.busy.pop();
     }
     if (this.workers.length === 0) {
-      this.warmed = null;
-      const waiters = this.readyWaiters.splice(0);
+      this.warm = "idle";
+      this.failure = "";
+      const waiters = [...this.readyWaiters];
+      this.readyWaiters.clear();
       for (const waiter of waiters) waiter(false);
     }
+    if (count > 0 && this.warm === "idle") this.warm = "warming";
     while (this.workers.length < count) {
       const slot = this.workers.length;
       const worker = this.create();
+      this.busy.push(false);
       worker.onmessage = (event: MessageEvent) => {
         const { id, symbols, sightings, trackedAttempted, ready, error } = event.data as DecodeMessage;
         if (id === -1) {
           if (ready === false) {
-            this.onWorkerError?.(error || "decoder init failed");
+            this.failure = error || "decoder init failed";
+            // Once ANY worker is warm the pool can decode, and one slot whose
+            // second copy of the WASM failed is a capacity loss, not a broken
+            // session — reporting it would paint an error over a working
+            // receiver. Nor is a repeat from the next straggler news: the
+            // first real failure is the one worth showing.
+            if (this.warm !== "ready" && this.warm !== "failed") this.onWorkerError?.(this.failure);
             this.finishWarm(false);
           } else {
             this.finishWarm(true);
@@ -148,11 +212,21 @@ export class DecodeWorkerPool {
       };
       worker.onerror = (event) => {
         this.busy[slot] = false;
-        this.onWorkerError?.(event.message || "decode worker crashed");
+        this.failure = event.message || "decode worker crashed";
+        // Same rule as a failed ping: a crashed slot alongside a warm one is a
+        // lost capacity unit, not a dead decoder.
+        if (this.warm !== "ready" && this.warm !== "failed") this.onWorkerError?.(this.failure);
+        // A worker that never pinged at all and then crashed cannot warm this
+        // pool — that IS a real failure, not lateness.
+        this.finishWarm(false);
       };
       this.workers.push(worker);
-      this.busy.push(false);
     }
+  }
+
+  /** Why the warm-up failed, when it did. Empty while warming. */
+  get failureReason(): string {
+    return this.failure;
   }
 
   /** Hand a frame to a free worker. False when every worker is busy — the

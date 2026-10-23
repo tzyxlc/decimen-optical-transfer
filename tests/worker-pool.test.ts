@@ -285,7 +285,59 @@ test("whenReady fails on a failed warm-up ping", async () => {
   created[0]!.onmessage?.({ data: { id: -1, ready: false } } as MessageEvent);
   assert.equal(await pending, false);
   assert.equal(pool.isReady, false);
+  assert.equal(pool.warmState, "failed");
   assert.deepEqual(errors, ["decoder init failed"]);
+});
+
+test("a failed slot never speaks while another worker is warm", async () => {
+  // Six workers start in parallel. Four land, the fifth's second copy of the
+  // WASM times out, and reporting that would paint an error over a receiver
+  // that is decoding perfectly well on the other five.
+  const errors: string[] = [];
+  const created: FakeWorker[] = [];
+  const pool = new DecodeWorkerPool(
+    () => {
+      const worker = new FakeWorker(created.length);
+      created.push(worker);
+      return worker;
+    },
+    () => undefined,
+    undefined,
+    undefined,
+    (message) => errors.push(message),
+  );
+  pool.resize(3);
+  const pending = pool.whenReady(1000);
+  created[0]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(await pending, true);
+  assert.equal(pool.isReady, true);
+
+  created[1]!.onmessage?.({ data: { id: -1, ready: false, error: "stalled" } } as MessageEvent);
+  assert.deepEqual(errors, [], "a warm pool swallows a straggler's failure");
+  assert.equal(pool.isReady, true, "and stays warm");
+});
+
+test("a first-slot failure still reports when nothing else is warm", async () => {
+  const errors: string[] = [];
+  const created: FakeWorker[] = [];
+  const pool = new DecodeWorkerPool(
+    () => {
+      const worker = new FakeWorker(created.length);
+      created.push(worker);
+      return worker;
+    },
+    () => undefined,
+    undefined,
+    undefined,
+    (message) => errors.push(message),
+  );
+  pool.resize(2);
+  created[0]!.onmessage?.({ data: { id: -1, ready: false, error: "boom" } } as MessageEvent);
+  assert.deepEqual(errors, ["boom"]);
+  assert.equal(pool.warmState, "failed");
+  // Nothing landed, so this stays an error even if the other slot is slow.
+  created[1]!.onmessage?.({ data: { id: -1, ready: false, error: "boom too" } } as MessageEvent);
+  assert.deepEqual(errors, ["boom"], "already failed — do not re-report");
 });
 
 test("whenReady times out when the decoder never pings", async () => {
@@ -299,8 +351,94 @@ test("whenReady times out when the decoder never pings", async () => {
   );
   pool.resize(1);
   assert.equal(await pool.whenReady(20), false);
-  assert.ok(errors.some((e) => /timed out/.test(e)));
   assert.equal(pool.isReady, false);
+  // Lateness is not failure. A timeout must not be latched as one, or a phone
+  // whose first WASM load took a second too long is stuck until a reload.
+  assert.equal(pool.warmState, "warming", "a timeout leaves the warm-up running");
+  assert.equal(pool.failureReason, "");
+  assert.deepEqual(errors, [], "a timeout is not a decoder error");
+});
+
+test("a slow warm-up that lands after the timeout still becomes ready", async () => {
+  const created: FakeWorker[] = [];
+  let promoted = 0;
+  const pool = new DecodeWorkerPool(
+    () => {
+      const worker = new FakeWorker(0);
+      created.push(worker);
+      return worker;
+    },
+    () => undefined,
+  );
+  pool.watchReady(() => promoted++);
+  pool.resize(1);
+  assert.equal(await pool.whenReady(20), false, "the wait gave up");
+  assert.equal(pool.isStarting, true);
+  assert.equal(pool.isReady, false);
+
+  // The WASM finishes a moment later.
+  created[0]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(pool.isReady, true, "the late ping promotes the pool");
+  assert.equal(pool.warmState, "ready");
+  assert.equal(promoted, 1, "the receiver is told without a reload");
+  assert.equal(await pool.whenReady(20), true, "already warm — no second wait");
+});
+
+test("a worker that reports a real failure fails the pool, and only once", async () => {
+  const created: FakeWorker[] = [];
+  let promoted = 0;
+  const pool = new DecodeWorkerPool(
+    () => {
+      const worker = new FakeWorker(0);
+      created.push(worker);
+      return worker;
+    },
+    () => undefined,
+  );
+  pool.watchReady(() => promoted++);
+  pool.resize(2);
+  const pending = pool.whenReady(1000);
+  created[0]!.onmessage?.({ data: { id: -1, ready: false, error: "wasm compile" } } as MessageEvent);
+  assert.equal(await pending, false);
+  assert.equal(pool.warmState, "failed");
+  assert.equal(pool.failureReason, "wasm compile");
+
+  // A second worker finishing its own init must not resurrect a dead pool —
+  // one slot with a broken WASM means the build itself is broken.
+  created[1]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(pool.isReady, false);
+  assert.equal(promoted, 0);
+});
+
+test("draining the pool forgets the previous warm-up", async () => {
+  const has = harness();
+  has.pool.resize(1);
+  has.created[0]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(has.pool.isReady, true);
+
+  has.pool.resize(0);
+  assert.equal(has.pool.warmState, "idle", "no workers, no verdict");
+  assert.equal(has.pool.isReady, false);
+
+  // A fresh pool has to prove itself again rather than inherit the verdict.
+  has.pool.resize(1);
+  assert.equal(has.pool.warmState, "warming");
+  assert.equal(has.pool.isReady, false);
+});
+
+test("growing a warm pool keeps it warm", () => {
+  // Changing the decode-worker count mid-session must not blank the decoder:
+  // the surviving worker's WASM is still live and its duplicate ping is
+  // ignored by finishWarm.
+  const { pool, created } = harness();
+  pool.resize(1);
+  created[0]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(pool.isReady, true);
+
+  pool.resize(3);
+  assert.equal(pool.isReady, true, "growing is not a reset");
+  created[2]!.onmessage?.({ data: { id: -1, ready: true } } as MessageEvent);
+  assert.equal(pool.isReady, true);
 });
 
 test("onReply fires for every finished frame, including misses", () => {

@@ -8,13 +8,34 @@ import DecimenCodec, { type DecimenModule, type DecimenQuad } from "../vendor/de
 // Safari 14's instantiateStreaming often never settles (wrong WASM MIME, or
 // the streaming compile path hanging). Prefetch the bytes and instantiate
 // from an ArrayBuffer so init either finishes or times out.
+//
+// These are HANG detectors, not performance budgets. A cold load pulls 278 KB
+// of WASM and compiles it; on a phone that is a couple of seconds on wifi and
+// can be far worse on a congested link, on cellular, or behind a proxy that
+// stalls the first byte. The old 12 s iOS / 12 s desktop values sat right at
+// the edge of that and were the ones firing on IOS 27 — a timeout here used to
+// be indistinguishable from a broken build. A genuinely broken WASM still fails
+// fast (parse errors surface immediately); only the "never settles" case waits
+// out the full budget.
 const INIT_MS =
-  typeof navigator !== "undefined" && /iP(hone|ad|od)/.test(navigator.userAgent) ? 20_000 : 12_000;
+  typeof navigator !== "undefined" && /iP(hone|ad|od)/.test(navigator.userAgent) ? 45_000 : 30_000;
+
+/** Budget for the whole load, not just one fetch: fetchWasm() may spend one
+ *  INIT_MS on a stalled attempt and one more on the retry, and the compile and
+ *  instantiate after it still need room. An outer deadline equal to the inner
+ *  one would abort the retry before it could ever help. */
+const LOAD_MS = INIT_MS * 2 + 5_000;
 
 function explainWasmError(err: unknown): Error {
   const text = err instanceof Error ? err.message : String(err);
   if (/opcode 253|opcode 0xfd|simd/i.test(text)) {
     return new Error("decoder WASM uses SIMD (needs Safari 16.4+); this build should be scalar — hard-refresh");
+  }
+  // An AbortError here is OUR OWN deadline firing in fetchWasm(), not a
+  // browser-level refusal. "signal is aborted without reason" told nobody
+  // anything; say which budget ran out and that the link is the suspect.
+  if (/abort/i.test(text) || (err instanceof DOMException && err.name === "AbortError")) {
+    return new Error(`decoder download did not finish within ${Math.round(INIT_MS / 1000)} s — slow connection`);
   }
   return err instanceof Error ? err : new Error(text);
 }
@@ -35,15 +56,45 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   });
 }
 
-async function fetchWasm(): Promise<ArrayBuffer> {
+/**
+ * Pull the WASM bytes, once with a full budget.
+ *
+ * One retry, not a loop: the failure this exists for is a stalled or
+ * half-delivered response on a phone link, where a fresh request usually wins
+ * outright because the bytes are now in the HTTP or service-worker cache. A
+ * genuinely missing asset fails both times and stays a fast, honest error.
+ */
+async function fetchWasmOnce(budgetMs: number): Promise<ArrayBuffer> {
   const ctrl = typeof AbortController !== "undefined" ? new AbortController() : undefined;
-  const timer = ctrl ? setTimeout(() => ctrl.abort(), INIT_MS) : undefined;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), budgetMs) : undefined;
   try {
-    const response = await fetch(wasmUrl, { credentials: "same-origin", signal: ctrl?.signal });
+    const response = await fetch(wasmUrl, {
+      credentials: "same-origin",
+      signal: ctrl?.signal,
+      cache: "force-cache",
+    });
     if (!response.ok) throw new Error(`wasm ${response.status}`);
     return await response.arrayBuffer();
   } finally {
     if (timer !== undefined) clearTimeout(timer);
+  }
+}
+
+async function fetchWasm(): Promise<ArrayBuffer> {
+  try {
+    return await fetchWasmOnce(INIT_MS);
+  } catch (first) {
+    // Only worth another go when the first attempt was about the network
+    // rather than the server saying no.
+    if (first instanceof Error && /^wasm \d{3}$/.test(first.message)) throw first;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      throw new Error("decoder asset unavailable offline — reload once online");
+    }
+    try {
+      return await fetchWasmOnce(INIT_MS);
+    } catch {
+      throw explainWasmError(first);
+    }
   }
 }
 
@@ -76,7 +127,7 @@ let ready: Promise<DecimenModule> | null = null;
 
 function codecReady(): Promise<DecimenModule> {
   if (!ready) {
-    ready = withTimeout(loadCodec(), INIT_MS, "decoder init").catch((err) => {
+    ready = withTimeout(loadCodec(), LOAD_MS, "decoder init").catch((err) => {
       ready = null;
       throw err;
     });
